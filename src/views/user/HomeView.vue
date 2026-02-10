@@ -29,6 +29,20 @@ const fetchCities = async () => {
   }, 500)
 }
 
+import { useRouter } from 'vue-router'
+const router = useRouter()
+
+const handleSearch = () => {
+    router.push({
+        name: 'search',
+        query: {
+            from: fromLocation.value,
+            to: toLocation.value,
+            date: journeyDate.value
+        }
+    })
+}
+
 onMounted(() => {
   fetchCities()
 })
@@ -70,6 +84,15 @@ const featuredEvents = [
     image: 'https://images.unsplash.com/photo-1570125909232-eb2b9b149dd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     category: 'Economy'
   }
+]
+
+const busOperators = [
+  { id: 1, name: 'GreenLine', logo: 'https://jessoreinfo.com/wp-content/uploads/2025/06/Green-Line-Paribahan-Jessore.png' },
+  { id: 2, name: 'Nirala', logo: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTvNW_PBBSli0RiWZP856X8Ucj5nQLivPcp8pAMQXzJ7diJ09mLTi-4KZoFhqaJu8mj_Dk&usqp=CAU' },
+  { id: 3, name: 'Hanif', logo: 'https://hanifenterprisebd.com/images/hanif/bus-1.jpg' },
+  { id: 4, name: 'Ena', logo: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTne55ReqI9IHQwd15VM6WHePWP-bBGR_TYSA&s' },
+  { id: 5, name: 'Shyamoli', logo: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80' },
+  { id: 6, name: 'Saintmartin', logo: 'https://images.unsplash.com/photo-1570125909232-eb2b9b149dd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80' }
 ]
 </script>
 
@@ -131,7 +154,7 @@ const featuredEvents = [
                 </div>
 
                 <div class="p-2 flex items-center">
-                    <button class="w-full md:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-2xl px-8 py-4 font-bold transition-all transform hover:scale-105 shadow-lg flex items-center justify-center">
+                    <button @click="handleSearch" class="w-full md:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-2xl px-8 py-4 font-bold transition-all transform hover:scale-105 shadow-lg flex items-center justify-center">
                         Search
                     </button>
                 </div>
@@ -215,6 +238,25 @@ const featuredEvents = [
                     View all routes
                     <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                 </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bus Operators Section -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Our Top Bus Operators</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">We partner with the best in the business to ensure a safe and comfortable journey for you.</p>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center">
+                <div v-for="operator in busOperators" :key="operator.id" class="flex flex-col items-center group">
+                    <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-100 group-hover:border-indigo-500 transition-colors p-1">
+                        <img :src="operator.logo" :alt="operator.name" class="w-full h-full object-cover rounded-full grayscale group-hover:grayscale-0 transition-all duration-300">
+                    </div>
+                    <span class="mt-4 font-medium text-gray-700 group-hover:text-indigo-600 transition-colors">{{ operator.name }}</span>
+                </div>
             </div>
         </div>
     </section>
