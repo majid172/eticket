@@ -28,6 +28,16 @@ const router = createRouter({
           name: 'search',
           component: () => import('@/views/user/SearchResultsView.vue'),
         },
+        {
+          path: 'booking',
+          name: 'booking',
+          component: () => import('@/views/user/BookingView.vue'),
+        },
+        {
+          path: 'booking/success',
+          name: 'booking-success',
+          component: () => import('@/views/user/BookingSuccessView.vue'),
+        },
       ],
     },
     {

@@ -1,8 +1,11 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { useBookingStore } from '@/stores/booking'
 
 const route = useRoute()
+const router = useRouter()
+const bookingStore = useBookingStore()
 const searchParams = ref({
   from: route.query.from || 'Dhaka',
   to: route.query.to || 'Chittagong',
@@ -124,6 +127,16 @@ const totalPrice = computed(() => {
     const ticket = tickets.value.find(t => t.id === expandedTicketId.value)
     return ticket ? ticket.price * selectedSeats.value.length : 0
 })
+
+const proceedToBooking = (ticket) => {
+    bookingStore.setBookingDetails(
+        selectedSeats.value,
+        ticket,
+        tickets.value.find(t => t.id === expandedTicketId.value).departureDate, // simplified for now
+        ticket.route
+    )
+    router.push('/booking')
+}
 </script>
 
 <template>
@@ -404,6 +417,7 @@ const totalPrice = computed(() => {
                                </div>
 
                                <button 
+                                   @click="proceedToBooking(ticket)"
                                    :disabled="selectedSeats.length === 0"
                                    class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                                >
