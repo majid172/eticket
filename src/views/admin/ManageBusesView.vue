@@ -1,36 +1,99 @@
 <script setup>
 import { ref, computed } from 'vue'
-import AdminTable from '@/components/AdminTable.vue'
 
 const buses = ref([
-  { id: 1, operator: 'Green Line Paribahan', route: 'Dhaka - Chittagong', type: 'AC Business Class', seats: 36, price: 1500, departure: '08:30 AM', status: 'Active' },
-  { id: 2, operator: 'Hanif Enterprise', route: 'Dhaka - Cox\'s Bazar', type: 'Non-AC', seats: 48, price: 800, departure: '11:00 PM', status: 'Active' },
-  { id: 3, operator: 'Ena Transport', route: 'Dhaka - Sylhet', type: 'AC Economy', seats: 40, price: 1200, departure: '07:15 AM', status: 'Maintenance' },
-  { id: 4, operator: 'Shamoli Nr', route: 'Chittagong - Dhaka', type: 'Non-AC', seats: 50, price: 650, departure: '03:00 PM', status: 'Active' },
-  { id: 5, operator: 'Shohagh Paribahan', route: 'Dhaka - Khulna', type: 'AC Sleeper', seats: 30, price: 1800, departure: '09:00 PM', status: 'Active' },
+ {
+    id: 'BUS-24612474',
+    operator: 'Green Line Paribahan',
+    regNo: 'DHA-GA-1234',
+    route: 'Dhaka - Chittagong',
+    type: 'AC Business Class',
+    seats: 36,
+    price: 1500,
+    departure: '08:30 AM',
+    status: 'Active',
+    checked: false
+  },
+  {
+    id: 'BUS-24536474',
+    operator: 'Hanif Enterprise',
+    regNo: 'DHA-BA-5678',
+    route: 'Dhaka - Cox\'s Bazar',
+    type: 'Non-AC',
+    seats: 48,
+    price: 800,
+    departure: '11:00 PM',
+    status: 'Active',
+    checked: false
+  },
+  {
+    id: 'BUS-26466374',
+    operator: 'Ena Transport',
+    regNo: 'DHA-KA-9012',
+    route: 'Dhaka - Sylhet',
+    type: 'AC Economy',
+    seats: 40,
+    price: 1200,
+    departure: '07:15 AM',
+    status: 'Maintenance',
+    checked: false
+  },
+  {
+    id: 'BUS-24655532',
+    operator: 'Shamoli Nr',
+    regNo: 'DHA-PA-3456',
+    route: 'Chittagong - Dhaka',
+    type: 'Non-AC',
+    seats: 50,
+    price: 650,
+    departure: '03:00 PM',
+    status: 'Active',
+    checked: false
+  },
+  {
+    id: 'BUS-64642415',
+    operator: 'Shohagh Paribahan',
+    regNo: 'DHA-HA-7890',
+    route: 'Dhaka - Khulna',
+    type: 'AC Sleeper',
+    seats: 30,
+    price: 1800,
+    departure: '09:00 PM',
+    status: 'Active',
+    checked: false
+  }
 ])
 
-const columns = [
-    { key: 'id', label: 'ID', class: 'font-semibold text-gray-700' },
-    { key: 'operator_info', label: 'Operator Info' },
-    { key: 'route', label: 'Route', class: 'text-gray-600' },
-    { key: 'type_info', label: 'Type/Seats' },
-    { key: 'departure', label: 'Departure', class: 'text-gray-600 font-medium' },
-    { key: 'price', label: 'Price' },
-    { key: 'status', label: 'Status' },
-    { key: 'actions', label: 'Actions', class: 'text-right' }
-]
-
 const searchQuery = ref('')
+const allChecked = ref(false)
 
-const filteredBuses = computed(() => {
-    if (!searchQuery.value) return buses.value
-    const query = searchQuery.value.toLowerCase()
-    return buses.value.filter(bus => 
-        bus.operator.toLowerCase().includes(query) || 
-        bus.route.toLowerCase().includes(query)
-    )
-})
+const toggleAll = () => {
+    buses.value.forEach(b => b.checked = allChecked.value)
+}
+
+const getStatusStyles = (status) => {
+    if (status === 'Active') {
+        return 'bg-emerald-50 text-emerald-700'
+    } else if (status === 'Maintenance') {
+        return 'bg-amber-50 text-amber-700'
+    } else if (status === 'Retired') {
+        return 'bg-rose-50 text-rose-700'
+    } else {
+        return 'bg-gray-50 text-gray-700'
+    }
+}
+
+const getStatusIconColor = (status) => {
+     if (status === 'Active') {
+        return 'text-emerald-500'
+    } else if (status === 'Maintenance') {
+        return 'text-amber-500'
+    } else if (status === 'Retired') {
+        return 'text-rose-500'
+    } else {
+        return 'text-gray-500'
+    }
+}
 
 const deleteBus = (id) => {
     if(confirm('Are you sure you want to delete this bus?')) {
@@ -40,78 +103,114 @@ const deleteBus = (id) => {
 </script>
 
 <template>
-  <div>
-    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
-       <div>
-           <h2 class="text-2xl font-bold text-gray-800">Manage Buses</h2>
-           <p class="text-gray-500 text-sm">Add, edit, or remove buses from the fleet.</p>
-       </div>
-       <button class="mt-4 md:mt-0 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg transition-all flex items-center">
-           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-           Add New Bus
-       </button>
-    </div>
-
-    <!-- Filters & Search -->
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-col md:flex-row gap-4">
-        <div class="relative flex-grow">
-            <input v-model="searchQuery" type="text" placeholder="Search by operator or route..." class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-            <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-        </div>
-        <select class="border border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 text-gray-600">
-            <option>All Status</option>
-            <option>Active</option>
-            <option>Maintenance</option>
-            <option>Retired</option>
-        </select>
-         <select class="border border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 text-gray-600">
-            <option>All Types</option>
-            <option>AC</option>
-            <option>Non-AC</option>
-        </select>
-    </div>
-
-    <!-- Buses Table -->
-     <AdminTable :columns="columns" :data="filteredBuses" :itemsPerPage="5">
-        <template #cell-operator_info="{ item }">
-            <div>
-                <div class="font-bold text-gray-800">{{ item.operator }}</div>
-                <div class="text-xs text-gray-500">Reg: DHA-GA-1234</div>
-            </div>
-        </template>
-
-        <template #cell-type_info="{ item }">
-            <div>
-                <div class="text-sm font-medium text-gray-700">{{ item.type }}</div>
-                <div class="text-xs text-indigo-500 font-medium">{{ item.seats }} Seats</div>
-            </div>
-        </template>
-
-        <template #cell-price="{ item }">
-             <div class="font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-lg inline-block">৳{{ item.price }}</div>
-        </template>
-
-        <template #cell-status="{ item }">
-             <span :class="{
-                'bg-emerald-100 text-emerald-700 border border-emerald-200': item.status === 'Active',
-                'bg-amber-100 text-amber-700 border border-amber-200': item.status === 'Maintenance',
-                'bg-rose-100 text-rose-700 border border-rose-200': item.status === 'Retired'
-            }" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide shadow-sm">
-                {{ item.status }}
-            </span>
-        </template>
-
-        <template #cell-actions="{ item }">
-            <div class="flex justify-end space-x-3">
-                <button class="text-gray-400 hover:text-indigo-600 transition-colors transform hover:scale-110" title="Edit">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                </button>
-                <button @click="deleteBus(item.id)" class="text-gray-400 hover:text-rose-600 transition-colors transform hover:scale-110" title="Delete">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                </button>
-            </div>
-        </template>
-    </AdminTable>
+  <div class="p-8 max-w-[1600px] mx-auto font-sans text-slate-800 bg-white">
     
+    <!-- Header & Toolbar Combined -->
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        
+        <!-- Left: Title & Badge -->
+        <div class="flex items-center gap-3">
+            <h1 class="text-2xl font-bold text-gray-900">Buses</h1>
+            <span class="px-2.5 py-0.5 rounded-md bg-yellow-50 text-yellow-700 text-xs font-bold border border-yellow-100">
+                {{ buses.length }} Buses
+            </span>
+        </div>
+
+        <!-- Center: Search Pill -->
+        <div class="relative w-full md:w-96">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </span>
+            <input 
+                type="text" 
+                v-model="searchQuery"
+                placeholder="Search (Ctrl+K)" 
+                class="block w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm placeholder-gray-500 focus:outline-none focus:bg-white focus:border-gray-300 focus:ring-0 transition-all hover:bg-gray-100"
+            >
+        </div>
+
+        <!-- Right: Actions -->
+        <div class="flex items-center gap-2 w-full md:w-auto">
+             <button class="flex items-center px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
+                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                 Filter
+             </button>
+             <button class="flex items-center px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
+                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"></path></svg>
+                 Sort
+             </button>
+             <button class="flex items-center px-4 py-2 bg-black text-white rounded-full text-sm font-medium hover:bg-gray-800 transition-colors shadow-sm ml-1">
+                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                 Add Bus
+             </button>
+        </div>
+    </div>
+
+    <!-- Table Container -->
+    <div class="overflow-x-auto rounded-lg border border-gray-100">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-50/80 border-b border-gray-100">
+                    <th class="p-4 w-12">
+                         <input type="checkbox" v-model="allChecked" @change="toggleAll" class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
+                    </th>
+                    <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Bus ID</th>
+                    <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Operator Info</th>
+                    <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Route</th>
+                    <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Type/Seats</th>
+                    <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Departure</th>
+                    <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Price</th>
+                    <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                <tr v-for="bus in buses" :key="bus.id" class="hover:bg-gray-50/50 transition-colors group">
+                    <td class="p-4">
+                        <input type="checkbox" v-model="bus.checked" class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
+                    </td>
+                    <td class="p-4 text-sm font-medium text-gray-900">{{ bus.id }}</td>
+                    <td class="p-4">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-medium text-gray-800">{{ bus.operator }}</span>
+                            <span class="text-xs text-gray-400">{{ bus.regNo }}</span>
+                        </div>
+                    </td>
+                    <td class="p-4 text-sm text-gray-600">
+                         {{ bus.route }}
+                    </td>
+                    <td class="p-4">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-medium text-gray-700">{{ bus.type }}</span>
+                            <span class="text-xs text-indigo-500 font-medium">{{ bus.seats }} Seats</span>
+                        </div>
+                    </td>
+                    <td class="p-4 text-sm font-medium text-gray-900">
+                        {{ bus.departure }}
+                    </td>
+                    <td class="p-4">
+                        <div class="font-bold text-indigo-700 bg-indigo-50 px-2 py-1 rounded inline-block text-sm">৳{{ bus.price }}</div>
+                    </td>
+                    <td class="p-4">
+                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium" :class="getStatusStyles(bus.status)">
+                            <svg class="w-2 h-2 mr-1.5" :class="getStatusIconColor(bus.status)" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                            {{ bus.status }}
+                        </span>
+                    </td>
+                    <td class="p-4 text-right">
+                        <div class="flex items-center justify-end gap-3">
+                            <button class="text-gray-400 hover:text-blue-600 transition-colors" title="Edit Bus">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            </button>
+                            <button class="text-gray-400 hover:text-red-600 transition-colors" @click="deleteBus(bus.id)" title="Delete Bus">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
   </div>
 </template>

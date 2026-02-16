@@ -19,11 +19,20 @@ const toggleSidebar = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-100 flex font-sans">
+  <div class="h-screen bg-gray-100 flex font-sans overflow-hidden">
     <!-- Sidebar -->
+    <!-- Mobile: Fixed overlay, Desktop: Relative -->
+    <div 
+      v-if="isSidebarOpen" 
+      class="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
+      @click="toggleSidebar"
+    ></div>
+
     <aside 
-      class="bg-indigo-900 text-white transition-all duration-300 ease-in-out flex flex-col shadow-xl z-20"
-      :class="isSidebarOpen ? 'w-64' : 'w-20'"
+      class="bg-indigo-900 text-white transition-all duration-300 ease-in-out flex flex-col shadow-xl z-30 fixed md:relative h-full"
+      :class="[
+        isSidebarOpen ? 'w-64 translate-x-0' : 'w-64 -translate-x-full md:translate-x-0 md:w-20'
+      ]"
     >
       <!-- Logo -->
       <div class="h-16 flex items-center justify-center border-b border-indigo-800">
@@ -69,7 +78,7 @@ const toggleSidebar = () => {
     </aside>
 
     <!-- Main Content -->
-    <div class="flex-grow flex flex-col min-h-screen overflow-hidden">
+    <div class="flex-grow flex flex-col h-full overflow-hidden w-full">
       <!-- Header -->
       <header class="h-16 bg-white shadow-sm flex items-center justify-between px-6 z-10">
         <button @click="toggleSidebar" class="text-gray-500 hover:text-indigo-600 focus:outline-none transition-colors">
