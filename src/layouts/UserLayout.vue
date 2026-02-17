@@ -24,6 +24,7 @@ const isMenuOpen = ref(false)
            
             <RouterLink to="/about" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">About</RouterLink>
             <RouterLink to="/contact" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Contact</RouterLink>
+            <RouterLink to="/settings" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Settings</RouterLink>
           </nav>
 
           <!-- Action Buttons -->
@@ -53,6 +54,7 @@ const isMenuOpen = ref(false)
           <RouterLink to="/events" class="block text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">Events</RouterLink>
           <RouterLink to="/about" class="block text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">About</RouterLink>
           <RouterLink to="/contact" class="block text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">Contact</RouterLink>
+          <RouterLink to="/settings" class="block text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">Settings</RouterLink>
           <div class="mt-4 pt-4 border-t border-gray-100 flex flex-col space-y-2">
              <button class="w-full text-left text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">Sign In</button>
              <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-md text-base font-medium">Sign Up</button>

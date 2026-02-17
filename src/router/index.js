@@ -38,6 +38,11 @@ const router = createRouter({
           name: 'booking-success',
           component: () => import('@/views/user/BookingSuccessView.vue'),
         },
+        {
+          path: 'settings',
+          name: 'user-settings',
+          component: () => import('@/views/user/SettingsView.vue'),
+        },
       ],
     },
     {
@@ -82,6 +87,11 @@ const router = createRouter({
           path: 'users',
           name: 'admin-users',
           component: () => import('@/views/admin/UsersView.vue'),
+        },
+        {
+          path: 'settings',
+          name: 'admin-settings',
+          component: () => import('@/views/admin/SettingsView.vue'),
         },
       ],
     },
