@@ -69,6 +69,11 @@ const router = createRouter({
           component: () => import('@/views/admin/CreateRouteView.vue'),
         },
         {
+          path: 'routes/:id', // matches /admin/routes/123
+          name: 'admin-routes-edit',
+          component: () => import('@/views/admin/EditRouteView.vue'),
+        },
+        {
           path: 'bookings',
           name: 'admin-bookings',
           component: () => import('@/views/admin/BookingsView.vue'),
