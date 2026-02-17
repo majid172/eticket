@@ -66,7 +66,7 @@ const saveSettings = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-white font-sans text-gray-700">
+  <div class="bg-white font-sans text-gray-700">
     
     <!-- Top Breadcrumb -->
     <div class="px-8 py-4 border-b border-gray-100 flex items-center text-sm font-medium">
@@ -75,7 +75,7 @@ const saveSettings = () => {
         <span class="text-blue-500">{{ tabs.find(t => t.id === activeTab)?.name }}</span>
     </div>
 
-    <div class="flex min-h-[calc(100vh-53px)]">
+    <div class="flex ">
         
         <!-- Sidebar -->
         <div class="w-64 flex-shrink-0 border-r border-gray-100 py-6">
