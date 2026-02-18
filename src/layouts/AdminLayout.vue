@@ -62,7 +62,7 @@ onUnmounted(() => {
                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
            </div>
            <div v-show="isSidebarOpen" class="flex flex-col opacity-100 transition-opacity duration-300">
-               <span class="text-xl font-bold tracking-tight text-slate-900 leading-none">Jatri<span class="text-indigo-600">Admin</span></span>
+               <span class="text-xl font-bold tracking-tight text-slate-900 leading-none">Ticket <span class="text-indigo-600">Admin</span></span>
            </div>
         </div>
       </div>
