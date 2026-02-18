@@ -29,10 +29,10 @@ const isMenuOpen = ref(false)
 
           <!-- Action Buttons -->
           <div class="hidden md:flex items-center space-x-4">
-            <button class="text-gray-700 hover:text-indigo-600 font-medium text-sm">Sign In</button>
-            <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors shadow-md hover:shadow-lg">
+            <RouterLink to="/login" class="text-gray-700 hover:text-indigo-600 font-medium text-sm">Sign In</RouterLink>
+            <RouterLink to="/register" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors shadow-md hover:shadow-lg">
               Sign Up
-            </button>
+            </RouterLink>
           </div>
 
           <!-- Mobile menu button -->
@@ -56,8 +56,8 @@ const isMenuOpen = ref(false)
           <RouterLink to="/contact" class="block text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">Contact</RouterLink>
           <RouterLink to="/settings" class="block text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">Settings</RouterLink>
           <div class="mt-4 pt-4 border-t border-gray-100 flex flex-col space-y-2">
-             <button class="w-full text-left text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">Sign In</button>
-             <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-md text-base font-medium">Sign Up</button>
+             <RouterLink to="/login" class="w-full text-left text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">Sign In</RouterLink>
+             <RouterLink to="/register" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-md text-base font-medium text-center">Sign Up</RouterLink>
           </div>
         </div>
       </div>
