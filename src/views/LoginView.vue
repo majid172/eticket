@@ -1,21 +1,20 @@
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
-const router = useRouter()
-const email = ref('')
+const auth = useAuthStore()
+
+const email    = ref('')
 const password = ref('')
-const isLoading = ref(false)
 const showPassword = ref(false)
+const errorMsg = ref('')
 
-const handleLogin = () => {
-    isLoading.value = true
-    // Simulate API call
-    setTimeout(() => {
-        isLoading.value = false
-        // For now, redirect to home. In real app, check role and redirect accordingly.
-        router.push('/')
-    }, 1500)
+const handleLogin = async () => {
+    errorMsg.value = ''
+    const result = await auth.login({ email: email.value, password: password.value })
+    if (!result.success) {
+        errorMsg.value = result.message || 'Login failed. Please check your credentials.'
+    }
 }
 </script>
 
@@ -32,6 +31,12 @@ const handleLogin = () => {
                 <p class="mt-2 text-sm text-gray-600">
                     Sign in to your account to continue
                 </p>
+            </div>
+
+            <!-- Error Alert -->
+            <div v-if="errorMsg" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <p class="text-sm text-red-700">{{ errorMsg }}</p>
             </div>
 
             <!-- Form -->
@@ -103,17 +108,17 @@ const handleLogin = () => {
                 <div>
                     <button 
                         type="submit" 
-                        :disabled="isLoading"
+                        :disabled="auth.loading"
                         class="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-lg shadow-indigo-200 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
                         <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                            <svg v-if="!isLoading" class="h-5 w-5 text-indigo-500 group-hover:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            <svg v-if="!auth.loading" class="h-5 w-5 text-indigo-500 group-hover:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                             <svg v-else class="animate-spin h-5 w-5 text-indigo-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
                         </span>
-                        {{ isLoading ? 'Signing in...' : 'Sign in' }}
+                        {{ auth.loading ? 'Signing in...' : 'Sign in' }}
                     </button>
                 </div>
             </form>

@@ -1,8 +1,10 @@
 <script setup>
 import { RouterView, RouterLink } from 'vue-router'
 import { ref } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 
 const isMenuOpen = ref(false)
+const auth = useAuthStore()
 </script>
 
 <template>
@@ -29,10 +31,47 @@ const isMenuOpen = ref(false)
 
           <!-- Action Buttons -->
           <div class="hidden md:flex items-center space-x-4">
-            <RouterLink to="/login" class="text-gray-700 hover:text-indigo-600 font-medium text-sm">Sign In</RouterLink>
-            <RouterLink to="/register" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors shadow-md hover:shadow-lg">
-              Sign Up
-            </RouterLink>
+
+            <!-- Guest: show Sign In / Sign Up -->
+            <template v-if="!auth.isAuthenticated">
+              <RouterLink to="/login" class="text-gray-700 hover:text-indigo-600 font-medium text-sm">Sign In</RouterLink>
+              <RouterLink to="/register" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors shadow-md hover:shadow-lg">
+                Sign Up
+              </RouterLink>
+            </template>
+
+            <!-- Logged in -->
+            <template v-else>
+              <!-- Admin / Operator: show Dashboard link -->
+              <RouterLink
+                v-if="auth.isAdmin"
+                to="/admin/dashboard"
+                class="text-indigo-600 hover:text-indigo-800 font-medium text-sm flex items-center gap-1"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                Dashboard
+              </RouterLink>
+              <RouterLink
+                v-else-if="auth.isOperator"
+                to="/operator/dashboard"
+                class="text-indigo-600 hover:text-indigo-800 font-medium text-sm flex items-center gap-1"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                Dashboard
+              </RouterLink>
+
+              <!-- User greeting -->
+              <span class="text-sm text-gray-600 font-medium">Hi, {{ auth.user?.name?.split(' ')[0] }}</span>
+
+              <!-- Logout -->
+              <button
+                @click="auth.logout()"
+                class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-full text-sm font-medium transition-colors border border-red-200"
+              >
+                Logout
+              </button>
+            </template>
+
           </div>
 
           <!-- Mobile menu button -->
@@ -55,10 +94,23 @@ const isMenuOpen = ref(false)
           <RouterLink to="/about" class="block text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">About</RouterLink>
           <RouterLink to="/contact" class="block text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">Contact</RouterLink>
           <RouterLink to="/settings" class="block text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">Settings</RouterLink>
-          <div class="mt-4 pt-4 border-t border-gray-100 flex flex-col space-y-2">
-             <RouterLink to="/login" class="w-full text-left text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">Sign In</RouterLink>
-             <RouterLink to="/register" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-md text-base font-medium text-center">Sign Up</RouterLink>
-          </div>
+          <!-- Guest -->
+          <template v-if="!auth.isAuthenticated">
+            <div class="mt-4 pt-4 border-t border-gray-100 flex flex-col space-y-2">
+              <RouterLink to="/login" class="w-full text-left text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">Sign In</RouterLink>
+              <RouterLink to="/register" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-md text-base font-medium text-center">Sign Up</RouterLink>
+            </div>
+          </template>
+
+          <!-- Logged in -->
+          <template v-else>
+            <div class="mt-4 pt-4 border-t border-gray-100 flex flex-col space-y-2">
+              <span class="px-3 py-2 text-sm font-semibold text-gray-700">Hi, {{ auth.user?.name }}</span>
+              <RouterLink v-if="auth.isAdmin" to="/admin/dashboard" class="block text-indigo-600 hover:text-indigo-800 px-3 py-2 rounded-md text-base font-medium">Dashboard</RouterLink>
+              <RouterLink v-else-if="auth.isOperator" to="/operator/dashboard" class="block text-indigo-600 hover:text-indigo-800 px-3 py-2 rounded-md text-base font-medium">Dashboard</RouterLink>
+              <button @click="auth.logout()" class="w-full text-left text-red-600 hover:text-red-800 px-3 py-2 rounded-md text-base font-medium">Logout</button>
+            </div>
+          </template>
         </div>
       </div>
     </header>

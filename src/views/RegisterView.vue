@@ -1,22 +1,27 @@
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
-const router = useRouter()
-const name = ref('')
-const email = ref('')
+const auth = useAuthStore()
+
+const name     = ref('')
+const email    = ref('')
 const password = ref('')
-const passwordConfirmation = ref('')
-const isLoading = ref(false)
+const role     = ref('user')   // 'user' (passenger) or 'operator'
 const showPassword = ref(false)
+const errorMsg = ref('')
 
-const handleRegister = () => {
-    isLoading.value = true
-    // Simulate API call
-    setTimeout(() => {
-        isLoading.value = false
-        router.push('/')
-    }, 1500)
+const handleRegister = async () => {
+    errorMsg.value = ''
+    const result = await auth.register({
+        name:     name.value,
+        email:    email.value,
+        password: password.value,
+        role:     role.value,
+    })
+    if (!result.success) {
+        errorMsg.value = result.message || 'Registration failed. Please try again.'
+    }
 }
 </script>
 
@@ -33,6 +38,12 @@ const handleRegister = () => {
                 <p class="mt-2 text-sm text-gray-600">
                     Join us to book your seamless journey
                 </p>
+            </div>
+
+            <!-- Error Alert -->
+            <div v-if="errorMsg" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <p class="text-sm text-red-700">{{ errorMsg }}</p>
             </div>
 
             <!-- Form -->
@@ -123,6 +134,23 @@ const handleRegister = () => {
                         </div>
                     </div>
                     
+                    <!-- Role Selector -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">I am registering as</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label :class="['flex items-center gap-2 p-3 border rounded-lg cursor-pointer transition-all', role === 'user' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 hover:border-gray-400']">
+                                <input type="radio" v-model="role" value="user" class="sr-only">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                <span class="text-sm font-medium">Passenger</span>
+                            </label>
+                            <label :class="['flex items-center gap-2 p-3 border rounded-lg cursor-pointer transition-all', role === 'operator' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 hover:border-gray-400']">
+                                <input type="radio" v-model="role" value="operator" class="sr-only">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                                <span class="text-sm font-medium">Operator</span>
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="flex items-center">
                         <input id="terms" name="terms" type="checkbox" required class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-pointer">
                         <label for="terms" class="ml-2 block text-sm text-gray-900 cursor-pointer">
@@ -135,17 +163,17 @@ const handleRegister = () => {
                 <div>
                     <button 
                         type="submit" 
-                        :disabled="isLoading"
+                        :disabled="auth.loading"
                         class="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-lg shadow-indigo-200 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
                         <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                            <svg v-if="!isLoading" class="h-5 w-5 text-indigo-500 group-hover:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                            <svg v-if="!auth.loading" class="h-5 w-5 text-indigo-500 group-hover:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
                             <svg v-else class="animate-spin h-5 w-5 text-indigo-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
                         </span>
-                        {{ isLoading ? 'Creating Account...' : 'Sign Up' }}
+                        {{ auth.loading ? 'Creating Account...' : 'Sign Up' }}
                     </button>
                 </div>
             </form>
