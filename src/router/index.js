@@ -6,30 +6,15 @@ import HomeView from '@/views/user/HomeView.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // ─── Public / Passenger ─────────────────────────────────────────────────
     {
       path: '/',
       component: UserLayout,
       children: [
-        {
-          path: '',
-          name: 'home',
-          component: HomeView,
-        },
-        {
-          path: 'about',
-          name: 'about',
-          component: () => import('@/views/user/AboutView.vue'),
-        },
-        {
-          path: 'contact',
-          name: 'contact',
-          component: () => import('@/views/user/ContactView.vue'),
-        },
-        {
-          path: 'search',
-          name: 'search',
-          component: () => import('@/views/user/SearchResultsView.vue'),
-        },
+        { path: '', name: 'home', component: HomeView },
+        { path: 'about', name: 'about', component: () => import('@/views/user/AboutView.vue') },
+        { path: 'contact', name: 'contact', component: () => import('@/views/user/ContactView.vue') },
+        { path: 'search', name: 'search', component: () => import('@/views/user/SearchResultsView.vue') },
         {
           path: 'booking',
           name: 'booking',
@@ -50,92 +35,61 @@ const router = createRouter({
         },
       ],
     },
+
+    // ─── Admin Panel ─────────────────────────────────────────────────────────
     {
       path: '/admin',
       component: AdminLayout,
       meta: { requiresAuth: true, roles: ['admin'] },
       children: [
-        {
-          path: '',
-          redirect: '/admin/dashboard'
-        },
-        {
-          path: 'dashboard',
-          name: 'admin-dashboard',
-          component: () => import('@/views/admin/AdminDashboardView.vue'),
-        },
-        {
-          path: 'buses',
-          name: 'admin-buses',
-          component: () => import('@/views/admin/ManageBusesView.vue'),
-        },
-        {
-          path: 'routes',
-          name: 'admin-routes',
-          component: () => import('@/views/admin/ManageRoutesView.vue'),
-        },
-        {
-          path: 'routes/create',
-          name: 'admin-routes-create',
-          component: () => import('@/views/admin/CreateRouteView.vue'),
-        },
-        {
-          path: 'routes/:id',
-          name: 'admin-routes-edit',
-          component: () => import('@/views/admin/EditRouteView.vue'),
-        },
-        {
-          path: 'bookings',
-          name: 'admin-bookings',
-          component: () => import('@/views/admin/BookingsView.vue'),
-        },
-        {
-          path: 'users',
-          name: 'admin-users',
-          component: () => import('@/views/admin/UsersView.vue'),
-        },
-        {
-          path: 'users/:id',
-          name: 'admin-users-edit',
-          component: () => import('@/views/admin/EditUserView.vue'),
-        },
-        {
-          path: 'settings',
-          name: 'admin-settings',
-          component: () => import('@/views/admin/SettingsView.vue'),
-        },
+        { path: '', redirect: '/admin/dashboard' },
+        { path: 'dashboard', name: 'admin-dashboard', component: () => import('@/views/admin/AdminDashboardView.vue') },
+        { path: 'buses', name: 'admin-buses', component: () => import('@/views/admin/ManageBusesView.vue') },
+        { path: 'routes', name: 'admin-routes', component: () => import('@/views/admin/ManageRoutesView.vue') },
+        { path: 'routes/create', name: 'admin-routes-create', component: () => import('@/views/admin/CreateRouteView.vue') },
+        { path: 'routes/:id', name: 'admin-routes-edit', component: () => import('@/views/admin/EditRouteView.vue') },
+        { path: 'bookings', name: 'admin-bookings', component: () => import('@/views/admin/BookingsView.vue') },
+        { path: 'users', name: 'admin-users', component: () => import('@/views/admin/UsersView.vue') },
+        { path: 'users/:id', name: 'admin-users-edit', component: () => import('@/views/admin/EditUserView.vue') },
+        { path: 'settings', name: 'admin-settings', component: () => import('@/views/admin/SettingsView.vue') },
       ],
     },
+
+    // ─── Operator Panel ──────────────────────────────────────────────────────
     {
-      path: '/login',
-      name: 'login',
-      meta: { guestOnly: true },
-      component: () => import('@/views/LoginView.vue'),
+      path: '/operator',
+      component: () => import('@/layouts/OperatorLayout.vue'),
+      meta: { requiresAuth: true, roles: ['operator'] },
+      children: [
+        { path: '', redirect: '/operator/dashboard' },
+        { path: 'dashboard', name: 'operator-dashboard', component: () => import('@/views/operator/OperatorDashboardView.vue') },
+        { path: 'buses', name: 'operator-buses', component: () => import('@/views/operator/OperatorBusesView.vue') },
+        { path: 'schedules', name: 'operator-schedules', component: () => import('@/views/operator/OperatorSchedulesView.vue') },
+        { path: 'bookings', name: 'operator-bookings', component: () => import('@/views/operator/OperatorBookingsView.vue') },
+        { path: 'settings', name: 'operator-settings', component: () => import('@/views/operator/OperatorSettingsView.vue') },
+        { path: 'company', name: 'operator-company', component: () => import('@/views/operator/OperatorCompanyView.vue') },
+      ],
     },
-    {
-      path: '/register',
-      name: 'register',
-      meta: { guestOnly: true },
-      component: () => import('@/views/RegisterView.vue'),
-    },
-    {
-      // Catch-all 404
-      path: '/:pathMatch(.*)*',
-      redirect: '/',
-    },
+
+    // ─── Auth ────────────────────────────────────────────────────────────────
+    { path: '/login', name: 'login', meta: { guestOnly: true }, component: () => import('@/views/LoginView.vue') },
+    { path: '/register', name: 'register', meta: { guestOnly: true }, component: () => import('@/views/RegisterView.vue') },
+
+    // ─── 404 ─────────────────────────────────────────────────────────────────
+    { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
 })
 
 // ─── Navigation Guards ────────────────────────────────────────────────────────
 router.beforeEach((to) => {
-  // Lazy import to avoid circular dependency (store uses router, router uses store)
   const token = localStorage.getItem('auth_token')
-  const user  = JSON.parse(localStorage.getItem('auth_user') || 'null')
+  const user = JSON.parse(localStorage.getItem('auth_user') || 'null')
+  const role = user?.role
 
-  // 1. Guest-only routes (login, register) — redirect logged-in users away
+  // 1. Guest-only routes — redirect already-logged-in users to their dashboard
   if (to.meta.guestOnly && token) {
-    const role = user?.role
     if (role === 'admin') return { name: 'admin-dashboard' }
+    if (role === 'operator') return { name: 'operator-dashboard' }
     return { name: 'home' }
   }
 
@@ -144,13 +98,11 @@ router.beforeEach((to) => {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
 
-  // 3. Role-restricted routes — block unauthorized roles
+  // 3. Role-restricted routes — send each role to their own area
   if (to.meta.roles && token) {
-    const userRole = user?.role
-    if (!to.meta.roles.includes(userRole)) {
-      // Passengers trying to access admin → go home
-      // Admins trying to access passenger-only → go to admin dashboard
-      if (userRole === 'admin') return { name: 'admin-dashboard' }
+    if (!to.meta.roles.includes(role)) {
+      if (role === 'admin') return { name: 'admin-dashboard' }
+      if (role === 'operator') return { name: 'operator-dashboard' }
       return { name: 'home' }
     }
   }

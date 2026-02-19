@@ -5,27 +5,27 @@ import router from '@/router'
 
 export const useAuthStore = defineStore('auth', () => {
   // ─── State ────────────────────────────────────────────────────────────────
-  const user  = ref(JSON.parse(localStorage.getItem('auth_user')) || null)
+  const user = ref(JSON.parse(localStorage.getItem('auth_user')) || null)
   const token = ref(localStorage.getItem('auth_token') || null)
   const loading = ref(false)
-  const errors  = ref({})
+  const errors = ref({})
 
   // ─── Getters ──────────────────────────────────────────────────────────────
   const isAuthenticated = computed(() => !!token.value)
-  const isAdmin         = computed(() => user.value?.role === 'admin')
-  const isOperator      = computed(() => user.value?.role === 'operator')
-  const isPassenger     = computed(() => user.value?.role === 'passenger')
+  const isAdmin = computed(() => user.value?.role === 'admin')
+  const isOperator = computed(() => user.value?.role === 'operator')
+  const isPassenger = computed(() => user.value?.role === 'passenger')
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
   function setSession(userData, tokenValue) {
-    user.value  = userData
+    user.value = userData
     token.value = tokenValue
-    localStorage.setItem('auth_user',  JSON.stringify(userData))
+    localStorage.setItem('auth_user', JSON.stringify(userData))
     localStorage.setItem('auth_token', tokenValue)
   }
 
   function clearSession() {
-    user.value  = null
+    user.value = null
     token.value = null
     localStorage.removeItem('auth_user')
     localStorage.removeItem('auth_token')
@@ -38,7 +38,7 @@ export const useAuthStore = defineStore('auth', () => {
    */
   async function register(payload) {
     loading.value = true
-    errors.value  = {}
+    errors.value = {}
     try {
       const { data } = await api.post('/auth/register', payload)
       setSession(data.user, data.token)
@@ -57,9 +57,9 @@ export const useAuthStore = defineStore('auth', () => {
    */
   async function login(payload) {
     console.log(payload);
-    
+
     loading.value = true
-    errors.value  = {}
+    errors.value = {}
     try {
       const { data } = await api.post('/auth/login', payload)
       setSession(data.user, data.token)
@@ -98,9 +98,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * Redirect user to the correct dashboard based on their role.
-   */
   function redirectByRole(role) {
     if (role === 'admin') {
       router.push('/admin/dashboard')
