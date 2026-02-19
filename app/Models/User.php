@@ -49,4 +49,14 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // ─── Relationships ────────────────────────────────────────────────────────
+
+    /**
+     * The company profile for an operator user.
+     */
+    public function company()
+    {
+        return $this->hasOne(Company::class);
+    }
 }

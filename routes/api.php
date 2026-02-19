@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Operator\BusController;
+use App\Http\Controllers\Api\V1\Operator\CompanyController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -34,7 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ─── Passenger (User) Routes ──────────────────────────────────────────────
     // Passengers can ONLY search schedules and manage their own bookings.
     // They have NO access to operator or admin routes.
-    Route::middleware('role:user')->prefix('passenger')->group(function () {
+    Route::middleware('role:passenger')->prefix('passenger')->group(function () {
         // Search available schedules/buses
         Route::get('/schedules',              fn() => response()->json(['message' => 'Search schedules here']));
         Route::get('/schedules/{id}/seats',   fn() => response()->json(['message' => 'View available seats']));
@@ -50,14 +52,17 @@ Route::middleware('auth:sanctum')->group(function () {
     // Operators manage their own company resources. Users cannot access these.
     Route::middleware('role:operator')->prefix('operator')->group(function () {
         // Company profile
-        Route::get('/company',                fn() => response()->json(['message' => 'My company profile']));
-        Route::put('/company',                fn() => response()->json(['message' => 'Update company profile']));
+        Route::get('/company',  [CompanyController::class, 'show']);
+        Route::post('/company', [CompanyController::class, 'store']);
+        Route::put('/company',  [CompanyController::class, 'update']);
+       
 
-        // Bus management
-        Route::get('/buses',                  fn() => response()->json(['message' => 'My buses']));
-        Route::post('/buses',                 fn() => response()->json(['message' => 'Add a bus']));
-        Route::put('/buses/{id}',             fn() => response()->json(['message' => 'Update bus']));
-        Route::delete('/buses/{id}',          fn() => response()->json(['message' => 'Delete bus']));
+        // Bus management (operator's own fleet only)
+        Route::get('/buses',           [BusController::class, 'index']);
+        Route::post('/buses',          [BusController::class, 'store']);
+        Route::get('/buses/{id}',      [BusController::class, 'show']);
+        Route::put('/buses/{id}',      [BusController::class, 'update']);
+        Route::delete('/buses/{id}',   [BusController::class, 'destroy']);
 
         // Route management
         Route::get('/routes',                 fn() => response()->json(['message' => 'My routes']));
