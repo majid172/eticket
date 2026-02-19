@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
-
+import { useUserStore } from '@/stores/admin/user'
+const userStore = useUserStore();
 const users = ref([
  {
     id: 'USR-24612474',
@@ -163,8 +164,8 @@ const getRoleColor = (role) => {
                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"></path></svg>
                  Sort
              </button>
-             <button class="flex items-center px-4 py-2 bg-black text-white rounded-full text-sm font-medium hover:bg-gray-800 transition-colors shadow-sm ml-1">
-                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+             <button class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-sm">
+                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                  Add User
              </button>
         </div>
@@ -175,9 +176,6 @@ const getRoleColor = (role) => {
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-gray-50/80 border-b border-gray-100">
-                    <th class="p-4 w-12">
-                         <input type="checkbox" v-model="allChecked" @change="toggleAll" class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
-                    </th>
                     <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">User ID</th>
                     <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name & Email</th>
                     <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
@@ -188,9 +186,6 @@ const getRoleColor = (role) => {
             </thead>
             <tbody class="divide-y divide-gray-50">
                 <tr v-for="user in users" :key="user.id" class="hover:bg-gray-50/50 transition-colors group">
-                    <td class="p-4">
-                        <input type="checkbox" v-model="user.checked" class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
-                    </td>
                     <td class="p-4 text-sm font-medium text-gray-900">{{ user.id }}</td>
                     <td class="p-4">
                         <div class="flex items-center">

@@ -71,43 +71,46 @@ async function save() {
     <template v-else>
 
       <!-- ── Hero Header ──────────────────────────────────────────────────────── -->
-      <div class="relative bg-gradient-to-br from-emerald-700 via-emerald-600 to-teal-500 rounded-2xl overflow-hidden mb-6 px-8 py-8">
-        <!-- Decorative circles -->
-        <div class="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5"></div>
-        <div class="absolute bottom-0 right-24 w-32 h-32 rounded-full bg-white/5"></div>
+      <div class="relative bg-gradient-to-r from-emerald-700 to-teal-500 rounded-2xl overflow-hidden mb-6 px-6 py-4">
+        <!-- Subtle decorative rings -->
+        <div class="absolute -right-6 -top-6 w-28 h-28 rounded-full bg-white/5 pointer-events-none"></div>
+        <div class="absolute right-16 bottom-0 w-16 h-16 rounded-full bg-white/5 pointer-events-none"></div>
 
-        <div class="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div class="flex items-center gap-5">
-            <!-- Company avatar -->
-            <div class="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0 border border-white/30">
-              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        <div class="relative flex items-center justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <!-- Icon chip -->
+            <div class="w-10 h-10 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                   d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
               </svg>
             </div>
-            <div>
-              <div v-if="!hasCompany"
-                class="inline-flex items-center gap-1.5 bg-amber-400/20 border border-amber-300/40 text-amber-200 text-xs font-semibold px-2.5 py-1 rounded-full mb-2">
+            <div class="flex items-center gap-3 flex-wrap">
+              <!-- Setup Required badge -->
+              <span v-if="!hasCompany"
+                class="inline-flex items-center gap-1.5 bg-amber-400/20 border border-amber-300/40 text-amber-200 text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
                 <span class="w-1.5 h-1.5 rounded-full bg-amber-300 animate-pulse"></span>
                 Setup Required
+              </span>
+              <div>
+                <p class="text-base font-bold text-white leading-tight">
+                  {{ hasCompany ? (form.company_name || 'Company Profile') : 'Set Up Your Company' }}
+                </p>
+                <p class="text-emerald-100 text-xs mt-0.5">
+                  {{ hasCompany
+                    ? 'Manage your registered company details'
+                    : 'Register your company to start adding buses and schedules' }}
+                </p>
               </div>
-              <h1 class="text-2xl font-bold text-white">
-                {{ hasCompany ? (form.company_name || 'Company Profile') : 'Set Up Your Company' }}
-              </h1>
-              <p class="text-emerald-100 text-sm mt-0.5">
-                {{ hasCompany
-                  ? 'Manage your registered company details'
-                  : 'Register your company to start adding buses and schedules' }}
-              </p>
             </div>
           </div>
 
-          <!-- Go to buses -->
+          <!-- My Buses shortcut -->
           <button v-if="hasCompany"
             @click="router.push({ name: 'operator-buses' })"
-            class="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white/15 hover:bg-white/25 text-white text-sm font-medium rounded-xl border border-white/20 transition-colors backdrop-blur-sm"
+            class="flex-shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 bg-white/15 hover:bg-white/25 text-white text-xs font-semibold rounded-lg border border-white/20 transition-colors backdrop-blur-sm"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
             </svg>
             My Buses
