@@ -3,19 +3,60 @@
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
-use App\Models\User;
 use App\Http\Resources\Admin\UserResource;
+use App\Services\UserService;
+use Illuminate\Http\JsonResponse;
 
 class UserController extends Controller
 {
+    public function __construct(
+        private readonly UserService $userService
+    ) {}
+
     /**
-     * Display a listing of the users.
+     * GET /api/admin/users
+     * List all users.
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        $users = User::latest()->get();
-        return UserResource::collection($users);
+        return response()->json($this->userService->getAllUsers());
+    }
+
+    /**
+     * GET /api/admin/users/{id}
+     * Show a single user.
+     */
+    public function show(int $id): JsonResponse
+    {
+        $user = $this->userService->findOrFail($id);
+
+        return response()->json(new UserResource($user));
+    }
+
+    /**
+     * PUT /api/admin/users/{id}/status
+     * Toggle a user's active / blocked status.
+     */
+    public function toggleStatus(int $id): JsonResponse
+    {
+        $user = $this->userService->toggleStatus($id);
+
+        return response()->json([
+            'message' => 'User status updated successfully.',
+            'data'    => new UserResource($user),
+        ]);
+    }
+
+    /**
+     * DELETE /api/admin/users/{id}
+     * Permanently delete a user.
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        $this->userService->deleteUser($id);
+
+        return response()->json([
+            'message' => 'User deleted successfully.',
+        ]);
     }
 }
