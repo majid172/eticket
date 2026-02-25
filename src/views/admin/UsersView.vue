@@ -1,88 +1,43 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from '@/stores/admin/user'
+import { storeToRefs } from 'pinia'
+
 const userStore = useUserStore();
-const users = ref([
- {
-    id: 'USR-24612474',
-    name: 'Kathryn Murphy',
-    email: 'kathryn@example.com',
-    role: 'Company Owner',
-    joinDate: '03/25/24',
-    status: 'Active',
-    checked: false
-  },
-  {
-    id: 'USR-24536474',
-    name: 'Floyd Miles',
-    email: 'floyd@example.com',
-    role: 'Admin',
-    joinDate: '03/25/24',
-    status: 'Inactive',
-    checked: false
-  },
-  {
-    id: 'USR-26466374',
-    name: 'Courtney Henry',
-    email: 'courtney@example.com',
-    role: 'Passenger',
-    joinDate: '03/24/24',
-    status: 'Active',
-    checked: false
-  },
-  {
-    id: 'USR-24655532',
-    name: 'Cody Fisher',
-    email: 'cody@example.com',
-    role: 'Passenger',
-    joinDate: '03/23/24',
-    status: 'Active',
-    checked: false
-  },
-  {
-    id: 'USR-64642415',
-    name: 'Darlene Robertson',
-    email: 'darlene@example.com',
-    role: 'Admin',
-    joinDate: '03/23/24',
-    status: 'Banned',
-    checked: false
-  },
-   {
-    id: 'USR-64641474',
-    name: 'Albert Flores',
-    email: 'albert@example.com',
-    role: 'Company Owner',
-    joinDate: '03/22/24',
-    status: 'Active',
-    checked: false
-  },
-  {
-    id: 'USR-24242474',
-    name: 'Devon Lane',
-    email: 'devon@example.com',
-    role: 'Passenger',
-    joinDate: '03/22/24',
-    status: 'Pending',
-    checked: false
-  },
-   {
-    id: 'USR-24612424',
-    name: 'Darrell Steward',
-    email: 'darrell@example.com',
-    role: 'Passenger',
-    joinDate: '03/21/24',
-    status: 'Active',
-    checked: false
-  }
-])
+const { users } = storeToRefs(userStore);
+
+onMounted(() => {
+    userStore.fetchUsers();
+})
 
 const searchQuery = ref('')
 const currentPage = ref(1)
 const allChecked = ref(false)
 
+const filteredUsers = computed(() => {
+    if (!searchQuery.value) return users.value;
+    const query = searchQuery.value.toLowerCase();
+    return users.value.filter(user => 
+        user.name.toLowerCase().includes(query) || 
+        user.email.toLowerCase().includes(query) ||
+        user.id.toString().includes(query)
+    );
+});
+
+
 const getInitials = (name) => {
+    if (!name) return '??';
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+}
+
+const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: '2-digit'
+    });
 }
 
 const toggleAll = () => {
@@ -90,13 +45,14 @@ const toggleAll = () => {
 }
 
 const getStatusStyles = (status) => {
-    if (status === 'Active') {
+    const s = status?.toLowerCase();
+    if (s === 'active') {
         return 'bg-green-50 text-green-700'
-    } else if (status === 'Inactive') {
+    } else if (s === 'inactive') {
         return 'bg-gray-50 text-gray-700'
-    } else if (status === 'Banned') {
+    } else if (s === 'blocked' || s === 'banned') {
         return 'bg-red-50 text-red-700'
-    } else if (status === 'Pending') {
+    } else if (s === 'pending') {
         return 'bg-yellow-50 text-yellow-700'
     } else {
         return 'bg-gray-50 text-gray-700'
@@ -104,13 +60,14 @@ const getStatusStyles = (status) => {
 }
 
 const getStatusIconColor = (status) => {
-     if (status === 'Active') {
+    const s = status?.toLowerCase();
+    if (s === 'active') {
         return 'text-green-500'
-    } else if (status === 'Inactive') {
+    } else if (s === 'inactive') {
         return 'text-gray-500'
-    } else if (status === 'Banned') {
+    } else if (s === 'blocked' || s === 'banned') {
         return 'text-red-500'
-    } else if (status === 'Pending') {
+    } else if (s === 'pending') {
         return 'text-yellow-500'
     } else {
         return 'text-gray-500'
@@ -118,13 +75,21 @@ const getStatusIconColor = (status) => {
 }
 
 const getRoleColor = (role) => {
-    switch(role) {
-        case 'Company Owner': return 'text-purple-600 bg-purple-50 px-2 py-0.5 rounded text-xs font-semibold';
-        case 'Admin': return 'text-blue-600 bg-blue-50 px-2 py-0.5 rounded text-xs font-semibold';
-        case 'Passenger': return 'text-slate-600 bg-slate-50 px-2 py-0.5 rounded text-xs font-semibold';
-        default: return 'text-gray-600';
+    const r = role?.toLowerCase();
+    switch(r) {
+        case 'operator':
+        case 'company owner': return 'text-purple-600 bg-purple-50 px-2 py-0.5 rounded text-xs font-semibold';
+        case 'admin': return 'text-blue-600 bg-blue-50 px-2 py-0.5 rounded text-xs font-semibold';
+        case 'passenger': return 'text-slate-600 bg-slate-50 px-2 py-0.5 rounded text-xs font-semibold';
+        default: return 'text-gray-600 bg-gray-50 px-2 py-0.5 rounded text-xs font-semibold';
     }
 }
+
+const capitalize = (str) => {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 </script>
 
 <template>
@@ -185,8 +150,8 @@ const getRoleColor = (role) => {
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-50">
-                <tr v-for="user in users" :key="user.id" class="hover:bg-gray-50/50 transition-colors group">
-                    <td class="p-4 text-sm font-medium text-gray-900">{{ user.id }}</td>
+                <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-gray-50/50 transition-colors group">
+                    <td class="p-4 text-sm font-medium text-gray-900">#{{ user.id }}</td>
                     <td class="p-4">
                         <div class="flex items-center">
                             <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500 mr-3">
@@ -200,16 +165,16 @@ const getRoleColor = (role) => {
                     </td>
                     <td class="p-4">
                          <span :class="getRoleColor(user.role)">
-                            {{ user.role }}
+                            {{ capitalize(user.role) }}
                          </span>
                     </td>
                     <td class="p-4 text-sm text-gray-600">
-                        {{ user.joinDate }}
+                        {{ formatDate(user.created_at) }}
                     </td>
                     <td class="p-4">
                          <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium" :class="getStatusStyles(user.status)">
                             <svg class="w-2 h-2 mr-1.5" :class="getStatusIconColor(user.status)" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
-                            {{ user.status }}
+                            {{ capitalize(user.status) }}
                         </span>
                     </td>
                     <td class="p-4 text-right">
