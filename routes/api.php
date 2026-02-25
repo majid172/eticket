@@ -5,6 +5,8 @@ use App\Http\Controllers\Api\V1\Operator\BusController;
 use App\Http\Controllers\Api\V1\Operator\CompanyController;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\Api\V1\Admin\UserController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -83,7 +85,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Full platform control. Only admin role can access.
     Route::middleware('role:admin')->prefix('admin')->group(function () {
         // User management
-        Route::get('/users',                  fn() => response()->json(['message' => 'All users']));
+        Route::get('/users',                  [UserController::class, 'index']);
         Route::put('/users/{id}/status',      fn() => response()->json(['message' => 'Block/unblock user']));
         Route::delete('/users/{id}',          fn() => response()->json(['message' => 'Delete user']));
 
