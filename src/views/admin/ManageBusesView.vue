@@ -1,5 +1,14 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useAdminBusStore } from '@/stores/admin/bus'
+import { storeToRefs } from 'pinia'
+
+const adminBusStore = useAdminBusStore();
+const { buses } = storeToRefs(adminBusStore);
+
+onMounted(() => {
+    adminBusStore.fetchBuses();
+})
 
 const activeTab = ref('all')
 const searchQuery = ref('')
@@ -7,90 +16,31 @@ const allChecked = ref(false)
 
 const tabs = [
     { id: 'all', name: 'All Buses', icon: 'M4 6h16M4 12h16M4 18h16' },
-    { id: 'Active', name: 'Active', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
-    { id: 'Maintenance', name: 'Maintenance', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
-    { id: 'Retired', name: 'Retired', icon: 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z' }
+    { id: 'active', name: 'Active', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+    { id: 'maintenance', name: 'Maintenance', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
+    { id: 'retired', name: 'Retired', icon: 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z' }
 ]
 
-const buses = ref([
- {
-    id: 'BUS-24612474',
-    operator: 'Green Line Paribahan',
-    regNo: 'DHA-GA-1234',
-    route: 'Dhaka - Chittagong',
-    type: 'AC Business Class',
-    seats: 36,
-    price: 1500,
-    departure: '08:30 AM',
-    status: 'Active',
-    checked: false
-  },
-  {
-    id: 'BUS-24536474',
-    operator: 'Hanif Enterprise',
-    regNo: 'DHA-BA-5678',
-    route: 'Dhaka - Cox\'s Bazar',
-    type: 'Non-AC',
-    seats: 48,
-    price: 800,
-    departure: '11:00 PM',
-    status: 'Active',
-    checked: false
-  },
-  {
-    id: 'BUS-26466374',
-    operator: 'Ena Transport',
-    regNo: 'DHA-KA-9012',
-    route: 'Dhaka - Sylhet',
-    type: 'AC Economy',
-    seats: 40,
-    price: 1200,
-    departure: '07:15 AM',
-    status: 'Maintenance',
-    checked: false
-  },
-  {
-    id: 'BUS-24655532',
-    operator: 'Shamoli Nr',
-    regNo: 'DHA-PA-3456',
-    route: 'Chittagong - Dhaka',
-    type: 'Non-AC',
-    seats: 50,
-    price: 650,
-    departure: '03:00 PM',
-    status: 'Active',
-    checked: false
-  },
-  {
-    id: 'BUS-64642415',
-    operator: 'Shohagh Paribahan',
-    regNo: 'DHA-HA-7890',
-    route: 'Dhaka - Khulna',
-    type: 'AC Sleeper',
-    seats: 30,
-    price: 1800,
-    departure: '09:00 PM',
-    status: 'Active',
-    checked: false
-  }
-])
-
 const filteredBuses = computed(() => {
-    let result = buses.value
+    let result = buses.value || []
 
     // Filter by Tab (Status)
     if (activeTab.value !== 'all') {
-        result = result.filter(bus => bus.status === activeTab.value)
+        result = result.filter(bus => bus.status?.toLowerCase() === activeTab.value)
     }
 
     // Filter by Search
     if (searchQuery.value) {
         const query = searchQuery.value.toLowerCase()
-        result = result.filter(bus => 
-            bus.operator.toLowerCase().includes(query) ||
-            bus.regNo.toLowerCase().includes(query) ||
-            bus.route.toLowerCase().includes(query)
-        )
+        result = result.filter(bus => {
+            const companyName = bus.company?.name || '';
+            const busName = bus.bus_name || '';
+            const busNumber = bus.bus_number || '';
+            
+            return companyName.toLowerCase().includes(query) ||
+            busName.toLowerCase().includes(query) ||
+            busNumber.toLowerCase().includes(query)
+        })
     }
 
     return result
@@ -101,11 +51,12 @@ const toggleAll = () => {
 }
 
 const getStatusStyles = (status) => {
-    if (status === 'Active') {
+    const s = status?.toLowerCase();
+    if (s === 'active') {
         return 'bg-emerald-50 text-emerald-600 border-emerald-200'
-    } else if (status === 'Maintenance') {
+    } else if (s === 'maintenance') {
         return 'bg-amber-50 text-amber-600 border-amber-200'
-    } else if (status === 'Retired') {
+    } else if (s === 'retired') {
         return 'bg-rose-50 text-rose-600 border-rose-200'
     } else {
         return 'bg-gray-50 text-gray-600 border-gray-200'
@@ -113,11 +64,12 @@ const getStatusStyles = (status) => {
 }
 
 const getStatusIconColor = (status) => {
-     if (status === 'Active') {
+    const s = status?.toLowerCase();
+    if (s === 'active') {
         return 'bg-emerald-500'
-    } else if (status === 'Maintenance') {
+    } else if (s === 'maintenance') {
         return 'bg-amber-500'
-    } else if (status === 'Retired') {
+    } else if (s === 'retired') {
         return 'bg-rose-500'
     } else {
         return 'bg-gray-500'
@@ -206,29 +158,33 @@ const deleteBus = (id) => {
                             </td>
                             <td class="p-4">
                                 <div class="flex flex-col">
-                                    <span class="text-sm font-bold text-gray-900">{{ bus.operator }}</span>
-                                    <span class="text-xs text-gray-500 font-mono mt-0.5">{{ bus.regNo }}</span>
+                                    <span class="text-sm font-bold text-gray-900">{{ bus.bus_name || 'Unknown Operator' }}</span>
+                                    <span class="text-xs text-gray-500 font-mono mt-0.5">{{ bus.bus_number }}</span>
                                 </div>
                             </td>
                             <td class="p-4">
                                  <div class="flex items-center gap-2">
-                                    <span class="text-sm font-medium text-gray-700">{{ bus.route }}</span>
+                                    <span class="text-sm font-medium text-gray-700">
+                                        {{ bus.schedules?.length > 0 ? bus.schedules[0].route?.name : 'N/A' }}
+                                    </span>
                                 </div>
                             </td>
                             <td class="p-4">
                                 <div class="flex flex-col">
-                                    <span class="text-sm font-medium text-gray-900">{{ bus.type }}</span>
-                                    <span class="text-xs text-blue-600 font-medium mt-0.5">{{ bus.seats }} Seats</span>
+                                    <span class="text-sm font-medium text-gray-900">{{ bus.bus_type }}</span>
+                                    <span class="text-xs text-blue-600 font-medium mt-0.5">{{ bus.total_seats }} Seats</span>
                                 </div>
                             </td>
                             <td class="p-4 text-sm font-medium text-gray-600">
-                                {{ bus.departure }}
+                                {{ bus.schedules?.length > 0 ? bus.schedules[0].departure_time : '--:--' }}
                             </td>
                             <td class="p-4">
-                                <span class="font-bold text-gray-800 text-sm">৳{{ bus.price }}</span>
+                                <span class="font-bold text-gray-800 text-sm">
+                                    {{ bus.schedules?.length > 0 ? `৳${bus.schedules[0].base_price}` : '--' }}
+                                </span>
                             </td>
                             <td class="p-4">
-                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border" :class="getStatusStyles(bus.status)">
+                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border capitalize" :class="getStatusStyles(bus.status)">
                                     <span class="w-1.5 h-1.5 rounded-full mr-1.5" :class="getStatusIconColor(bus.status)"></span>
                                     {{ bus.status }}
                                 </span>

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useUserStore } from '@/stores/admin/user'
 import { storeToRefs } from 'pinia'
 
@@ -12,6 +12,7 @@ onMounted(() => {
 
 const searchQuery = ref('')
 const currentPage = ref(1)
+const itemsPerPage = ref(20)
 const allChecked = ref(false)
 
 const filteredUsers = computed(() => {
@@ -24,7 +25,30 @@ const filteredUsers = computed(() => {
     );
 });
 
+watch(searchQuery, () => {
+    currentPage.value = 1;
+});
 
+const totalPages = computed(() => {
+    return Math.ceil(filteredUsers.value.length / itemsPerPage.value);
+});
+
+const paginatedUsers = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage.value;
+    return filteredUsers.value.slice(start, start + itemsPerPage.value);
+});
+
+const prevPage = () => {
+    if (currentPage.value > 1) currentPage.value--;
+};
+
+const nextPage = () => {
+    if (currentPage.value < totalPages.value) currentPage.value++;
+};
+
+const goToPage = (page) => {
+    currentPage.value = page;
+};
 const getInitials = (name) => {
     if (!name) return '??';
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -141,7 +165,7 @@ const capitalize = (str) => {
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-gray-50/80 border-b border-gray-100">
-                    <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">User ID</th>
+                    <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">SL.</th>
                     <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name & Email</th>
                     <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
                     <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Joined Date</th>
@@ -150,8 +174,8 @@ const capitalize = (str) => {
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-50">
-                <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-gray-50/50 transition-colors group">
-                    <td class="p-4 text-sm font-medium text-gray-900">#{{ user.id }}</td>
+                <tr v-for="(user, index) in paginatedUsers" :key="user.id" class="hover:bg-gray-50/50 transition-colors group">
+                    <td class="p-4 text-sm font-medium text-gray-900">#{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
                     <td class="p-4">
                         <div class="flex items-center">
                             <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500 mr-3">
@@ -193,19 +217,26 @@ const capitalize = (str) => {
     </div>
 
     <!-- Pagination -->
-    <div class="mt-6 flex justify-between items-center">
-         <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+    <div v-if="totalPages > 1" class="mt-6 flex justify-between items-center">
+         <button @click="prevPage" :disabled="currentPage === 1" class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
          </button>
          
          <div class="flex gap-2">
-             <button class="w-8 h-8 flex items-center justify-center rounded-lg text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors">1</button>
-             <button class="w-8 h-8 flex items-center justify-center rounded-lg text-sm bg-gray-100 font-bold text-gray-900 shadow-sm">2</button>
-             <span class="w-8 h-8 flex items-center justify-center text-gray-400 text-sm">...</span>
-             <button class="w-8 h-8 flex items-center justify-center rounded-lg text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors">7</button>
+             <button 
+                 v-for="page in totalPages" 
+                 :key="page" 
+                 @click="goToPage(page)"
+                 :class="[
+                     'w-8 h-8 flex items-center justify-center rounded-lg text-sm transition-colors',
+                     currentPage === page ? 'bg-gray-100 font-bold text-gray-900 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                 ]"
+             >
+                 {{ page }}
+             </button>
          </div>
 
-         <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+         <button @click="nextPage" :disabled="currentPage === totalPages" class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
          </button>
     </div>

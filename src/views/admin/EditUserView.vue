@@ -1,10 +1,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/admin/user'
 
 const route = useRoute()
 const router = useRouter()
 const userId = route.params.id
+const userStore = useUserStore()
 
 const form = ref({
     name: '',
@@ -16,30 +18,46 @@ const form = ref({
 
 const isLoading = ref(false)
 
-// Simulation of fetching user data
-onMounted(() => {
-    // In a real app, fetch from API using userId
-    // For now, valid dummy data to visualize the design
+// Fetch real user data
+onMounted(async () => {
     if (userId) {
-        // Simulating data load
-        form.value = {
-            name: 'Kathryn Murphy',
-            email: 'kathryn@example.com',
-            phone: '(555) 123-4567',
-            role: 'operator', 
-            status: 'active'
+        isLoading.value = true
+        try {
+            const userData = await userStore.getUser(userId)
+            console.log(userData);
+            
+            if (userData) {
+                // Assuming your backend returns a user object
+                const u = userData.user || userData;
+                console.log(u);
+                
+                form.value = {
+                    name: u.name || '',
+                    email: u.email || '',
+                    phone: u.phone || '',
+                    role: u.role || 'passenger',
+                    status: u.status || 'active'
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch user:', error)
+        } finally {
+            isLoading.value = false
         }
     }
 })
 
 const handleSubmit = async () => {
     isLoading.value = true
-    // Simulate API call
-    setTimeout(() => {
-        isLoading.value = false
-        // Here we would typically update the user via API
+    
+    try {
+        await userStore.updateUser(userId, form.value)
         router.push('/admin/users')
-    }, 1000)
+    } catch (error) {
+        console.error('Failed to update user:', error)
+    } finally {
+        isLoading.value = false
+    }
 }
 </script>
 
@@ -134,7 +152,7 @@ const handleSubmit = async () => {
                                     v-model="form.role"
                                     class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:bg-white focus:border-black focus:ring-1 focus:ring-black transition-all appearance-none cursor-pointer"
                                 >
-                                    <option value="user">Passenger</option>
+                                    <option value="passenger">Passenger</option>
                                     <option value="operator">Operator (Company Owner)</option>
                                     <option value="admin">Administrator</option>
                                 </select>
