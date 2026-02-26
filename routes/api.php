@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\Operator\CompanyController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\V1\Admin\UserController;
+use App\Http\Controllers\Api\V1\Admin\BusController as AdminBusController;
 
 /*
 |--------------------------------------------------------------------------
@@ -87,12 +88,16 @@ Route::middleware('auth:sanctum')->group(function () {
         // User management
         Route::get('/users',             [UserController::class, 'index']);
         Route::get('/users/{id}',        [UserController::class, 'show']);
+        Route::put('/users/{id}',        [UserController::class, 'update']);
         Route::put('/users/{id}/status', [UserController::class, 'toggleStatus']);
         Route::delete('/users/{id}',     [UserController::class, 'destroy']);
 
         // Company/Operator approval
         Route::get('/companies',              fn() => response()->json(['message' => 'All companies']));
         Route::put('/companies/{id}/status',  fn() => response()->json(['message' => 'Approve/block company']));
+
+        // Platform-wide Buses
+        Route::get('/buses',                  [AdminBusController::class, 'index']);
 
         // Platform-wide bookings
         Route::get('/bookings',               fn() => response()->json(['message' => 'All bookings']));

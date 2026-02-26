@@ -57,6 +57,7 @@ class UserRepository implements UserRepositoryInterface
      */
     public function update(User $user, array $data): User
     {
+        
         if (isset($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         }

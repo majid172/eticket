@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\UserResource;
+use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
 
@@ -31,6 +32,22 @@ class UserController extends Controller
         $user = $this->userService->findOrFail($id);
 
         return response()->json(new UserResource($user));
+    }
+
+    /**
+     * PUT /api/admin/users/{id}
+     * Update a user's details and role.
+     */
+    public function update(UpdateUserRequest $request, int $id): JsonResponse
+    {
+        $user = $this->userService->findOrFail($id);
+
+        $user = $this->userService->updateUser($user, $request->validated());
+
+        return response()->json([
+            'message' => 'User updated successfully.',
+            'data'    => new UserResource($user),
+        ]);
     }
 
     /**

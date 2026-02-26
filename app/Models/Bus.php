@@ -18,21 +18,22 @@ class Bus extends Model
         'status',
     ];
 
-    // ─── Relationships ────────────────────────────────────────────────────────
 
-    /**
-     * The company (operator) that owns this bus.
-     */
     public function company()
     {
         return $this->belongsTo(Company::class);
     }
 
-    /**
-     * Seats belonging to this bus.
-     */
     public function seats()
     {
         return $this->hasMany(Seat::class);
     }
+
+    public function schedules()
+    {
+        return $this->belongsToMany(Schedule::class, 'schedule_buses')
+                    ->withPivot(['available_seats', 'status'])
+                    ->withTimestamps();
+    }
+    
 }
