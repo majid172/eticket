@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\ScheduleBus;
 use App\Models\Seat;
 use App\Models\BookingSeat;
+use App\Models\Route;
 use App\Http\Resources\ScheduleBusResource;
 
 class ScheduleController extends Controller
@@ -16,8 +17,8 @@ class ScheduleController extends Controller
      */
     public function cities()
     {
-        $sources = \App\Models\Route::distinct()->pluck('source_city');
-        $destinations = \App\Models\Route::distinct()->pluck('destination_city');
+        $sources = Route::distinct()->pluck('source_city');
+        $destinations = Route::distinct()->pluck('destination_city');
         
         $cities = $sources->merge($destinations)->unique()->sort()->values();
         
@@ -30,6 +31,29 @@ class ScheduleController extends Controller
         });
         
         return response()->json($mappedCities);
+    }
+
+    /**
+     * Get top 4 popular routes ordered by distance (longest first).
+     */
+    public function popularRoutes()
+    {
+        $routes = Route::where('status', 1)
+            ->withCount('schedules')
+            ->withMin('schedules', 'base_price')
+            ->orderByDesc('distance_km')
+            ->limit(4)
+            ->get()
+            ->map(fn($r) => [
+                'id'               => $r->id,
+                'source_city'      => $r->source_city,
+                'destination_city' => $r->destination_city,
+                'distance_km'      => $r->distance_km,
+                'schedules_count'  => $r->schedules_count,
+                'min_price'        => $r->schedules_min_base_price,
+            ]);
+
+        return response()->json($routes);
     }
 
     /**
@@ -51,6 +75,9 @@ class ScheduleController extends Controller
                 
                 if ($request->filled('travel_date')) {
                     $q->whereDate('travel_date', $request->travel_date);
+                } else {
+                    // No date given — show today and all future schedules
+                    $q->whereDate('travel_date', '>=', now()->toDateString());
                 }
             })
             ->where('status', 'scheduled')
