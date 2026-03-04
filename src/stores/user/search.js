@@ -37,6 +37,7 @@ export const useSearchStore = defineStore('search', () => {
         if (params) {
             searchParams.value = { ...searchParams.value, ...params }
         }
+        console.log(searchParams.value);
 
         loadingTickets.value = true;
         try {
@@ -53,6 +54,7 @@ export const useSearchStore = defineStore('search', () => {
                     travel_date: fmtDate
                 }
             });
+            console.log(data);
 
             tickets.value = data.data.map(sb => {
                 const sch = sb.schedule || {};

@@ -1,105 +1,67 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { useBookingStore } from '@/stores/booking'
+import { useSearchStore } from '@/stores/user/search'
+import api from '@/services/api'
 
 const route = useRoute()
 const router = useRouter()
 const bookingStore = useBookingStore()
-const searchParams = ref({
-  from: route.query.from || 'Dhaka',
-  to: route.query.to || 'Chittagong',
-  date: route.query.date || '10 Feb, 2026',
-  returnDate: route.query.returnDate || ''
+const searchStore = useSearchStore()
+
+const { searchParams, loadingTickets, tickets } = storeToRefs(searchStore)
+
+// Watch the route query to react to changes when the user searches again from the navbar/home
+watch(() => route.query, (newQuery) => {
+    searchStore.fetchSchedules({
+        from: newQuery.from || '',
+        to: newQuery.to || '',
+        date: newQuery.date || new Date().toISOString().split('T')[0],
+        returnDate: newQuery.returnDate || ''
+    })
+}, { deep: true })
+
+onMounted(() => {
+    searchStore.fetchSchedules({
+        from: route.query.from || '',
+        to: route.query.to || '',
+        date: route.query.date || new Date().toISOString().split('T')[0],
+        returnDate: route.query.returnDate || ''
+    })
 })
 
 const expandedTicketId = ref(null)
 const selectedSeats = ref([])
+const seatLayout = ref([])
+const loadingLayout = ref(false)
 
-// Mock Data for Bus Tickets matching the design
-const tickets = ref([
-  {
-    id: 1,
-    operator: 'Qatar Paribahan',
-    busInfo: '12, Ashok Leyland, AC',
-    route: 'Dhaka (Chandra) - Dhaka - Chittagong - Cox\'s Bazar',
-    departureTime: '07:30 PM',
-    departureDate: 'Tue, 10 Feb',
-    departureLocation: 'Dhaka',
-    duration: '9h 30m',
-    arrivalTime: '05:00 AM',
-    arrivalDate: 'Wed, 11 Feb',
-    arrivalLocation: 'Chittagong',
-    price: 1400,
-    oldPrice: 1600,
-    seatsAvailable: 13,
-    isAc: true,
-    discount: 'Get 200 TK Discount'
-  },
-  {
-    id: 2,
-    operator: 'Shanto Travels',
-    busInfo: '28, Premium Suite Class, AC Business & Sleeper',
-    route: 'Saidpur - Rangpur - Bogura - Dhaka - Chittagong',
-    departureTime: '03:00 PM',
-    departureDate: 'Tue, 10 Feb',
-    departureLocation: 'Dhaka',
-    duration: '18h 30m',
-    arrivalTime: '09:30 AM',
-    arrivalDate: 'Wed, 11 Feb',
-    arrivalLocation: 'Chittagong',
-    price: 1600,
-    oldPrice: null,
-    seatsAvailable: 42,
-    isAc: true,
-    discount: null
-  },
-  {
-    id: 3,
-    operator: 'Hanif Enterprise',
-    busInfo: 'Hino, 1J Super Plus Non AC',
-    route: 'Dhaka - Chittagong',
-    departureTime: '04:00 PM',
-    departureDate: 'Tue, 10 Feb',
-    departureLocation: 'Dhaka',
-    duration: '7h 0m',
-    arrivalTime: '11:00 PM',
-    arrivalDate: 'Tue, 10 Feb',
-    arrivalLocation: 'Chittagong',
-    price: 660,
-    oldPrice: null,
-    seatsAvailable: 0,
-    isAc: false,
-    discount: null
-  }
-])
-
-// Mock Seats Generator
-const generateSeats = () => {
-  const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
-  const seats = []
-  rows.forEach(row => {
-    seats.push(
-      { id: `${row}1`, name: `${row}1`, status: Math.random() > 0.4 ? 'available' : 'booked' },
-      { id: `${row}2`, name: `${row}2`, status: Math.random() > 0.4 ? 'available' : 'booked' },
-      { id: `${row}3`, name: `${row}3`, status: Math.random() > 0.4 ? 'available' : 'booked' },
-      { id: `${row}4`, name: `${row}4`, status: Math.random() > 0.4 ? 'available' : 'booked' }
-    )
-  })
-  return seats
-}
-
-const seatLayout = ref(generateSeats())
-
-const toggleSeats = (ticketId) => {
+const toggleSeats = async (ticketId) => {
   if (expandedTicketId.value === ticketId) {
     expandedTicketId.value = null
     selectedSeats.value = []
+    seatLayout.value = []
   } else {
     expandedTicketId.value = ticketId
     selectedSeats.value = []
-    // Regenerate random seats for demo feel
-    seatLayout.value = generateSeats()
+    seatLayout.value = []
+    loadingLayout.value = true
+    
+    try {
+      const { data } = await api.get(`/schedules/${ticketId}/seats`)
+      const dbSeats = data.seats || [];
+      seatLayout.value = dbSeats.map(s => ({
+          db_id: s.id,
+          id: s.seat_number,
+          name: s.seat_number,
+          status: s.is_booked ? 'booked' : 'available'
+      }));
+    } catch(err) {
+      console.error("Failed to load seats", err);
+    } finally {
+      loadingLayout.value = false;
+    }
   }
 }
 
@@ -132,9 +94,10 @@ const proceedToBooking = (ticket) => {
     bookingStore.setBookingDetails(
         selectedSeats.value,
         ticket,
-        tickets.value.find(t => t.id === expandedTicketId.value).departureDate, // simplified for now
+        tickets.value.find(t => t.id === expandedTicketId.value).departureDate,
         ticket.route
     )
+    bookingStore.scheduleBusId = ticket.id;
     router.push('/booking')
 }
 </script>
@@ -148,7 +111,7 @@ const proceedToBooking = (ticket) => {
           <div class="flex items-center space-x-4 flex-grow w-full md:w-auto bg-gray-50 p-2 rounded-xl border border-gray-100">
              <div class="flex items-center text-gray-700 font-medium">
                 <svg class="w-5 h-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                {{ searchParams.from }}
+                {{ searchParams.from }} 
              </div>
              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
              <div class="flex items-center text-gray-700 font-medium">
@@ -267,8 +230,22 @@ const proceedToBooking = (ticket) => {
                <button class="px-4 py-2 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:border-indigo-500 hover:text-indigo-600 transition-colors uppercase">Price: High to Low</button>
            </div>
 
+           <!-- Loading States -->
+           <div v-if="loadingTickets" class="py-12 flex justify-center items-center h-48">
+              <svg class="w-8 h-8 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24">
+                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+           </div>
+           
+           <div v-else-if="tickets.length === 0" class="py-12 bg-white rounded-2xl border border-gray-100 flex flex-col items-center justify-center text-gray-500">
+               <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+               <h3 class="text-lg font-bold text-gray-800">No schedules found</h3>
+               <p class="text-sm">Try modifying your search or picking a different date.</p>
+           </div>
+
            <!-- Ticket List -->
-           <div v-for="ticket in tickets" :key="ticket.id" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 group">
+           <div v-else v-for="ticket in tickets" :key="ticket.id" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 group">
                 <div class="p-6">
                     <div class="flex flex-col md:flex-row justify-between">
                         <!-- Bus Info -->
@@ -354,7 +331,13 @@ const proceedToBooking = (ticket) => {
                                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
                                </div>
                                
-                               <div class="grid grid-cols-5 gap-3 max-w-xs mx-auto text-center">
+                               <!-- Loading layout flag -->
+                               <div v-if="loadingLayout" class="h-32 flex items-center justify-center">
+                                  <svg class="w-6 h-6 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                               </div>
+
+                               <!-- Dynamic seats mapped by seatLayout structure -->
+                               <div v-else class="grid grid-cols-5 gap-3 max-w-xs mx-auto text-center">
                                    <!-- Driver Row -->
                                    <div class="col-span-5 h-8"></div>
 
