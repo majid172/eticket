@@ -1,77 +1,63 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 
 import { useSearchStore } from '@/stores/user/search'
-import { storeToRefs } from 'pinia'
-import { useRouter } from 'vue-router'
+import { useUserRouteStore } from '@/stores/user/route'
 
+const router      = useRouter()
 const searchStore = useSearchStore()
+const routeStore  = useUserRouteStore()
+
+// Search
 const { searchParams, cities } = storeToRefs(searchStore)
-const router = useRouter()
 
 const handleSearch = () => {
     router.push({
         name: 'search',
         query: {
             from: searchParams.value.from,
-            to: searchParams.value.to,
+            to:   searchParams.value.to,
             date: searchParams.value.date
         }
     })
 }
 
+// Popular Routes — state comes from the store
+const { popularRoutes, loadingPopular: routesLoading, errorPopular: routesError } = storeToRefs(routeStore)
+
+const routeImages = [
+  'https://images.unsplash.com/photo-1570125909232-eb2b9b149dd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1464219551459-ac14ae01fbe0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1509048191080-d2984bad6ae5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+]
+
+const fetchPopularRoutes = () => routeStore.fetchPopularRoutes()
+
+const bookRoute = (route) => {
+    router.push({
+        name:  'search',
+        query: { from: route.source_city, to: route.destination_city }
+    })
+}
+
 onMounted(() => {
-  searchStore.fetchCities()
+    searchStore.fetchCities()
+    routeStore.fetchPopularRoutes()
 })
 
-const featuredEvents = [
-  {
-    id: 1,
-    title: 'New York to Boston',
-    date: 'Daily',
-    location: 'Express Service',
-    price: '$35',
-    image: 'https://images.unsplash.com/photo-1570125909232-eb2b9b149dd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    category: 'Popular'
-  },
-  {
-    id: 2,
-    title: 'San Francisco to Los Angeles',
-    date: 'Daily',
-    location: 'Sleeper & Seater',
-    price: '$65',
-    image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    category: 'Best Seller'
-  },
-  {
-    id: 3,
-    title: 'London to Manchester',
-    date: 'Weekends',
-    location: 'Luxury Coach',
-    price: '$40',
-    image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    category: 'Luxury'
-  },
-  {
-    id: 4,
-    title: 'Chicago to Detroit',
-    date: 'Daily',
-    location: 'Business Class',
-    price: '$50',
-    image: 'https://images.unsplash.com/photo-1570125909232-eb2b9b149dd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    category: 'Economy'
-  }
-]
-
 const busOperators = [
-  { id: 1, name: 'GreenLine', logo: 'https://jessoreinfo.com/wp-content/uploads/2025/06/Green-Line-Paribahan-Jessore.png' },
-  { id: 2, name: 'Nirala', logo: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTvNW_PBBSli0RiWZP856X8Ucj5nQLivPcp8pAMQXzJ7diJ09mLTi-4KZoFhqaJu8mj_Dk&usqp=CAU' },
-  { id: 3, name: 'Hanif', logo: 'https://hanifenterprisebd.com/images/hanif/bus-1.jpg' },
-  { id: 4, name: 'Ena', logo: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTne55ReqI9IHQwd15VM6WHePWP-bBGR_TYSA&s' },
-  { id: 5, name: 'Shyamoli', logo: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80' },
-  { id: 6, name: 'Saintmartin', logo: 'https://images.unsplash.com/photo-1570125909232-eb2b9b149dd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80' }
+  { id: 1, name: 'GreenLine',   logo: 'https://jessoreinfo.com/wp-content/uploads/2025/06/Green-Line-Paribahan-Jessore.png' },
+  { id: 2, name: 'Nirala',      logo: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTvNW_PBBSli0RiWZP856X8Ucj5nQLivPcp8pAMQXzJ7diJ09mLTi-4KZoFhqaJu8mj_Dk&usqp=CAU' },
+  { id: 3, name: 'Hanif',       logo: 'https://hanifenterprisebd.com/images/hanif/bus-1.jpg' },
+  { id: 4, name: 'Ena',         logo: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTne55ReqI9IHQwd15VM6WHePWP-bBGR_TYSA&s' },
+  { id: 5, name: 'Shyamoli',    logo: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80' },
+  { id: 6, name: 'Saintmartin', logo: 'https://images.unsplash.com/photo-1570125909232-eb2b9b149dd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80' },
 ]
 </script>
+
 
 <template>
   <div class="home-view">
@@ -168,50 +154,113 @@ const busOperators = [
         </div>
     </section>
 
-    <!-- Featured Events Section -->
+    <!-- Popular Routes Section -->
     <section class="py-16 bg-gray-50">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-end mb-12">
                 <div>
                     <h2 class="text-3xl font-bold text-gray-900 mb-2">Popular Routes</h2>
-                    <p class="text-gray-600">Top destinations for your next journey.</p>
+                    <p class="text-gray-600">Top long-distance destinations for your next journey.</p>
                 </div>
-                <button class="hidden md:inline-flex items-center text-indigo-600 font-semibold hover:text-indigo-800 transition-colors">
+                <button @click="router.push({ name: 'search' })" class="hidden md:inline-flex items-center text-indigo-600 font-semibold hover:text-indigo-800 transition-colors">
                     View all routes
                     <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div v-for="event in featuredEvents" :key="event.id" class="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-                    <div class="relative h-48 overflow-hidden">
-                        <img :src="event.image" :alt="event.title" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
-                        <div class="absolute top-4 left-4">
-                            <span class="px-3 py-1 bg-white/90 backdrop-blur text-xs font-bold text-gray-900 rounded-full uppercase tracking-wide">
-                                {{ event.category }}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="p-6">
-                        <div class="flex items-center text-gray-500 text-xs font-medium mb-3">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            {{ event.date }}
-                        </div>
-                        <h3 class="text-lg font-bold text-gray-900 mb-2 line-clamp-1 group-hover:text-indigo-600 transition-colors">{{ event.title }}</h3>
-                        <div class="flex items-center text-gray-500 text-sm mb-4">
-                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                            {{ event.location }}
-                        </div>
-                        <div class="flex items-center justify-between mt-4 text-sm pt-4 border-t border-gray-100">
-                            <span class="text-gray-500">Starting from</span>
-                            <span class="text-xl font-bold text-indigo-600">{{ event.price }}</span>
+            <!-- Loading Skeleton -->
+            <div v-if="routesLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div v-for="n in 4" :key="n" class="bg-white rounded-2xl overflow-hidden shadow-sm animate-pulse">
+                    <div class="h-48 bg-gray-200"></div>
+                    <div class="p-6 space-y-3">
+                        <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+                        <div class="h-5 bg-gray-200 rounded w-3/4"></div>
+                        <div class="h-3 bg-gray-200 rounded w-1/3"></div>
+                        <div class="h-px bg-gray-100 mt-4"></div>
+                        <div class="flex justify-between pt-2">
+                            <div class="h-4 bg-gray-200 rounded w-1/4"></div>
+                            <div class="h-6 bg-gray-200 rounded w-1/4"></div>
                         </div>
                     </div>
                 </div>
             </div>
-            
-             <div class="mt-8 text-center md:hidden">
-                <button class="inline-flex items-center text-indigo-600 font-semibold hover:text-indigo-800 transition-colors">
+
+            <!-- Error state -->
+            <div v-else-if="routesError" class="text-center py-12 text-red-500">
+                <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <p class="font-medium">{{ routesError }}</p>
+                <button @click="fetchPopularRoutes" class="mt-3 text-sm text-indigo-600 hover:underline">Try again</button>
+            </div>
+
+            <!-- Route Cards -->
+            <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div
+                    v-for="(route, index) in popularRoutes"
+                    :key="route.id"
+                    class="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+                    @click="bookRoute(route)"
+                >
+                    <!-- Card Image -->
+                    <div class="relative h-48 overflow-hidden">
+                        <img
+                            :src="routeImages[index % routeImages.length]"
+                            :alt="route.source_city + ' to ' + route.destination_city"
+                            class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                        >
+                        <!-- Distance Badge -->
+                        <div class="absolute top-4 left-4">
+                            <span class="px-3 py-1 bg-white/90 backdrop-blur text-xs font-bold text-indigo-700 rounded-full uppercase tracking-wide">
+                                {{ route.distance_km }} km
+                            </span>
+                        </div>
+                        <!-- Gradient Overlay -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="p-6">
+                        <!-- Schedules count -->
+                        <div class="flex items-center text-gray-500 text-xs font-medium mb-3">
+                            <svg class="w-4 h-4 mr-1 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            {{ route.schedules_count }} schedule{{ route.schedules_count !== 1 ? 's' : '' }} available
+                        </div>
+
+                        <!-- Route title -->
+                        <h3 class="text-lg font-bold text-gray-900 mb-2 leading-tight group-hover:text-indigo-600 transition-colors">
+                            {{ route.source_city }}
+                            <span class="inline-flex items-center mx-1">
+                                <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                            </span>
+                            {{ route.destination_city }}
+                        </h3>
+
+                        <!-- Distance label -->
+                        <div class="flex items-center text-gray-500 text-sm">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                            {{ route.distance_km }} km distance
+                        </div>
+
+                        <!-- Price & CTA -->
+                        <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                            <div>
+                                <span class="text-xs text-gray-400">Starting from</span>
+                                <p class="text-xl font-bold text-indigo-600">
+                                    {{ route.min_price ? '৳' + Number(route.min_price).toLocaleString() : 'N/A' }}
+                                </p>
+                            </div>
+                            <button
+                                @click.stop="bookRoute(route)"
+                                class="bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all duration-200"
+                            >
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 text-center md:hidden">
+                <button @click="router.push({ name: 'search' })" class="inline-flex items-center text-indigo-600 font-semibold hover:text-indigo-800 transition-colors">
                     View all routes
                     <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                 </button>

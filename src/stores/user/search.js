@@ -47,13 +47,16 @@ export const useSearchStore = defineStore('search', () => {
                 if (!isNaN(d.getTime())) fmtDate = d.toISOString().split('T')[0];
             } catch (e) { }
 
-            const { data } = await api.get('/schedules', {
-                params: {
-                    source_city: searchParams.value.from,
-                    destination_city: searchParams.value.to,
-                    travel_date: fmtDate
-                }
-            });
+            // Build params — only include travel_date when explicitly set
+            const queryParams = {
+                source_city: searchParams.value.from,
+                destination_city: searchParams.value.to,
+            }
+            if (fmtDate) {
+                queryParams.travel_date = fmtDate
+            }
+
+            const { data } = await api.get('/schedules', { params: queryParams });
             console.log(data);
 
             tickets.value = data.data.map(sb => {

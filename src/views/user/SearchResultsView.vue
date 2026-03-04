@@ -16,18 +16,18 @@ const { searchParams, loadingTickets, tickets } = storeToRefs(searchStore)
 // Watch the route query to react to changes when the user searches again from the navbar/home
 watch(() => route.query, (newQuery) => {
     searchStore.fetchSchedules({
-        from: newQuery.from || '',
-        to: newQuery.to || '',
-        date: newQuery.date || new Date().toISOString().split('T')[0],
+        from:       newQuery.from       || '',
+        to:         newQuery.to         || '',
+        date:       newQuery.date       || '',   // empty = show all future schedules
         returnDate: newQuery.returnDate || ''
     })
 }, { deep: true })
 
 onMounted(() => {
     searchStore.fetchSchedules({
-        from: route.query.from || '',
-        to: route.query.to || '',
-        date: route.query.date || new Date().toISOString().split('T')[0],
+        from:       route.query.from       || '',
+        to:         route.query.to         || '',
+        date:       route.query.date       || '',   // empty = show all future schedules
         returnDate: route.query.returnDate || ''
     })
 })
