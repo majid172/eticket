@@ -41,14 +41,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // They have NO access to operator or admin routes.
     Route::middleware('role:passenger')->prefix('passenger')->group(function () {
         // Search available schedules/buses
-        Route::get('/schedules',              fn() => response()->json(['message' => 'Search schedules here']));
-        Route::get('/schedules/{id}/seats',   fn() => response()->json(['message' => 'View available seats']));
+        Route::get('/schedules',              [\App\Http\Controllers\Api\V1\Passenger\ScheduleController::class, 'index']);
+        Route::get('/schedules/{id}/seats',   [\App\Http\Controllers\Api\V1\Passenger\ScheduleController::class, 'seats']);
 
         // Booking management (own bookings only)
-        Route::get('/bookings',               fn() => response()->json(['message' => 'My bookings']));
-        Route::post('/bookings',              fn() => response()->json(['message' => 'Create a booking']));
-        Route::get('/bookings/{id}',          fn() => response()->json(['message' => 'View booking details']));
-        Route::delete('/bookings/{id}',       fn() => response()->json(['message' => 'Cancel booking']));
+        Route::get('/bookings',               [\App\Http\Controllers\Api\V1\Passenger\BookingController::class, 'index']);
+        Route::post('/bookings',              [\App\Http\Controllers\Api\V1\Passenger\BookingController::class, 'store']);
+        Route::get('/bookings/{id}',          [\App\Http\Controllers\Api\V1\Passenger\BookingController::class, 'show']);
+        Route::delete('/bookings/{id}',       [\App\Http\Controllers\Api\V1\Passenger\BookingController::class, 'destroy']);
     });
 
     // ─── Operator Routes ──────────────────────────────────────────────────────
@@ -68,18 +68,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/buses/{id}',   [BusController::class, 'destroy']);
 
         // Route management
-        Route::get('/routes',                 fn() => response()->json(['message' => 'My routes']));
-        Route::post('/routes',                fn() => response()->json(['message' => 'Add a route']));
+        Route::get('/routes',                 [\App\Http\Controllers\Api\V1\Operator\RouteController::class, 'index']);
+        Route::post('/routes',                [\App\Http\Controllers\Api\V1\Operator\RouteController::class, 'store']);
 
         // Schedule management
-        Route::get('/schedules',              fn() => response()->json(['message' => 'My schedules']));
-        Route::post('/schedules',             fn() => response()->json(['message' => 'Create a schedule']));
-        Route::put('/schedules/{id}',         fn() => response()->json(['message' => 'Update schedule']));
-        Route::delete('/schedules/{id}',      fn() => response()->json(['message' => 'Delete schedule']));
+        Route::get('/schedules',              [\App\Http\Controllers\Api\V1\Operator\ScheduleController::class, 'index']);
+        Route::post('/schedules',             [\App\Http\Controllers\Api\V1\Operator\ScheduleController::class, 'store']);
+        Route::put('/schedules/{id}',         [\App\Http\Controllers\Api\V1\Operator\ScheduleController::class, 'update']);
+        Route::delete('/schedules/{id}',      [\App\Http\Controllers\Api\V1\Operator\ScheduleController::class, 'destroy']);
 
         // Booking management (view passengers on their buses)
-        Route::get('/bookings',               fn() => response()->json(['message' => 'Bookings on my buses']));
-        Route::put('/bookings/{id}/status',   fn() => response()->json(['message' => 'Update booking status']));
+        Route::get('/bookings',               [\App\Http\Controllers\Api\V1\Operator\BookingController::class, 'index']);
+        Route::put('/bookings/{id}/status',   [\App\Http\Controllers\Api\V1\Operator\BookingController::class, 'updateStatus']);
     });
 
     // ─── Admin Routes ─────────────────────────────────────────────────────────
@@ -93,18 +93,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/users/{id}',     [UserController::class, 'destroy']);
 
         // Company/Operator approval
-        Route::get('/companies',              fn() => response()->json(['message' => 'All companies']));
-        Route::put('/companies/{id}/status',  fn() => response()->json(['message' => 'Approve/block company']));
+        Route::get('/companies',              [\App\Http\Controllers\Api\V1\Admin\CompanyController::class, 'index']);
+        Route::put('/companies/{id}/status',  [\App\Http\Controllers\Api\V1\Admin\CompanyController::class, 'updateStatus']);
 
         // Platform-wide Buses
         Route::get('/buses',                  [AdminBusController::class, 'index']);
 
         // Platform-wide bookings
-        Route::get('/bookings',               fn() => response()->json(['message' => 'All bookings']));
+        Route::get('/bookings',               [\App\Http\Controllers\Api\V1\Admin\BookingController::class, 'index']);
 
         // Routes & Schedules oversight
-        Route::get('/routes',                 fn() => response()->json(['message' => 'All routes']));
-        Route::get('/schedules',              fn() => response()->json(['message' => 'All schedules']));
+        Route::get('/routes',                 [\App\Http\Controllers\Api\V1\Admin\RouteController::class, 'index']);
+        Route::get('/schedules',              [\App\Http\Controllers\Api\V1\Admin\ScheduleController::class, 'index']);
     });
 });
 
