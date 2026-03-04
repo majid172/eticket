@@ -80,12 +80,18 @@ class ScheduleController extends Controller
         
         $scheduleBus->update([
             'status' => $validated['status'] ?? $scheduleBus->status,
+            'bus_id' => $validated['bus_id'] ?? $scheduleBus->bus_id,
         ]);
         
-        // Optional: Update schedule price if requested (will affect all buses on this schedule)
-        if (isset($validated['base_price'])) {
-            $scheduleBus->schedule()->update(['base_price' => $validated['base_price']]);
-        }
+        $schedule = $scheduleBus->schedule;
+        $schedule->update([
+            'route_id'       => $validated['route_id'] ?? $schedule->route_id,
+            'travel_date'    => $validated['travel_date'] ?? $schedule->travel_date,
+            'departure_time' => $validated['departure_time'] ?? $schedule->departure_time,
+            'arrival_time'   => $validated['arrival_time'] ?? $schedule->arrival_time,
+            'base_price'     => $validated['base_price'] ?? $schedule->base_price,
+            'status'         => $validated['status'] ?? $schedule->status,
+        ]);
 
         return response()->json(['message' => 'Schedule updated', 'schedule_bus' => $scheduleBus]);
     }

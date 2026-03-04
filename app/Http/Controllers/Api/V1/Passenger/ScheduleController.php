@@ -12,6 +12,27 @@ use App\Http\Resources\ScheduleBusResource;
 class ScheduleController extends Controller
 {
     /**
+     * Get unique source and destination cities for search form.
+     */
+    public function cities()
+    {
+        $sources = \App\Models\Route::distinct()->pluck('source_city');
+        $destinations = \App\Models\Route::distinct()->pluck('destination_city');
+        
+        $cities = $sources->merge($destinations)->unique()->sort()->values();
+        
+        // Return array of objects with id and name as expected by frontend
+        $mappedCities = $cities->map(function ($city, $index) {
+            return [
+                'id' => $index + 1,
+                'name' => $city
+            ];
+        });
+        
+        return response()->json($mappedCities);
+    }
+
+    /**
      * Display a listing of the available schedules.
      */
     public function index(Request $request)

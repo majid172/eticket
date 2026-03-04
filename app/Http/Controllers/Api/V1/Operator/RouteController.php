@@ -26,21 +26,51 @@ class RouteController extends Controller
     public function store(StoreRouteRequest $request)
     {
         $validated = $request->validated();
-        
-        $route = Route::firstOrCreate(
-            [
-                'source_city' => $validated['source_city'],
-                'destination_city' => $validated['destination_city'],
-            ],
-            [
-                'distance_km' => $validated['distance_km'] ?? null,
-                'status' => 1,
-            ]
-        );
+
+        $route = Route::firstOrNew([
+            'source_city'      => $validated['source_city'],
+            'destination_city' => $validated['destination_city'],
+        ]);
+
+        $route->distance_km = $validated['distance_km'] ?? $route->distance_km;
+        $route->status      = $route->status ?? 1;
+        $route->save();
 
         return response()->json([
-            'message' => 'Route created successfully',
-            'route' => $route
+            'message' => 'Route saved successfully',
+            'data'    => $route,
         ], 201);
+    }
+
+    /**
+     * Update the specified route in storage.
+     */
+    public function update(StoreRouteRequest $request, int $id)
+    {
+        $route     = Route::findOrFail($id);
+        $validated = $request->validated();
+
+        $route->source_city      = $validated['source_city'];
+        $route->destination_city = $validated['destination_city'];
+        $route->distance_km      = $validated['distance_km'] ?? $route->distance_km;
+        $route->save();
+
+        return response()->json([
+            'message' => 'Route updated successfully',
+            'data'    => $route,
+        ]);
+    }
+
+    /**
+     * Remove the specified route from storage.
+     */
+    public function destroy(int $id)
+    {
+        $route = Route::findOrFail($id);
+        $route->delete();
+
+        return response()->json([
+            'message' => 'Route deleted successfully',
+        ]);
     }
 }

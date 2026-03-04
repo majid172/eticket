@@ -17,8 +17,13 @@ class UpdateScheduleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['nullable', 'in:scheduled,completed,cancelled'],
-            'base_price' => ['nullable', 'numeric', 'min:0'],
+            'route_id'       => ['sometimes', 'exists:routes,id'],
+            'bus_id'         => ['sometimes', 'exists:buses,id'],
+            'travel_date'    => ['sometimes', 'date', 'after_or_equal:today'],
+            'departure_time' => ['sometimes', 'date_format:H:i'],
+            'arrival_time'   => ['sometimes', 'date_format:H:i', 'after:departure_time'],
+            'status'         => ['nullable', 'in:scheduled,completed,cancelled'],
+            'base_price'     => ['nullable', 'numeric', 'min:0'],
         ];
     }
 }

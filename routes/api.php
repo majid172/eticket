@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Operator\BusController;
 use App\Http\Controllers\Api\V1\Operator\CompanyController;
+use App\Http\Controllers\Api\V1\Operator\RouteController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\V1\Admin\UserController;
@@ -27,6 +28,10 @@ Route::prefix('auth')->group(function () {
     Route::post('/login',    [AuthController::class, 'login']);
 });
 
+Route::get('/routes/cities',   [\App\Http\Controllers\Api\V1\Passenger\ScheduleController::class, 'cities']);
+Route::get('/schedules',       [\App\Http\Controllers\Api\V1\Passenger\ScheduleController::class, 'index']);
+Route::get('/schedules/{id}/seats', [\App\Http\Controllers\Api\V1\Passenger\ScheduleController::class, 'seats']);
+
 // ─── Authenticated Routes ─────────────────────────────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -37,12 +42,9 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // ─── Passenger (User) Routes ──────────────────────────────────────────────
-    // Passengers can ONLY search schedules and manage their own bookings.
+    // Passengers can ONLY manage their own bookings.
     // They have NO access to operator or admin routes.
     Route::middleware('role:passenger')->prefix('passenger')->group(function () {
-        // Search available schedules/buses
-        Route::get('/schedules',              [\App\Http\Controllers\Api\V1\Passenger\ScheduleController::class, 'index']);
-        Route::get('/schedules/{id}/seats',   [\App\Http\Controllers\Api\V1\Passenger\ScheduleController::class, 'seats']);
 
         // Booking management (own bookings only)
         Route::get('/bookings',               [\App\Http\Controllers\Api\V1\Passenger\BookingController::class, 'index']);
@@ -68,13 +70,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/buses/{id}',   [BusController::class, 'destroy']);
 
         // Route management
-        Route::get('/routes',                 [\App\Http\Controllers\Api\V1\Operator\RouteController::class, 'index']);
-        Route::post('/routes',                [\App\Http\Controllers\Api\V1\Operator\RouteController::class, 'store']);
+        Route::get('/routes',[RouteController::class, 'index']);
+        Route::post('/routes',[RouteController::class, 'store']);
+        Route::put('/routes/{id}',[RouteController::class, 'update']);
+        Route::delete('/routes/{id}',[RouteController::class, 'destroy']);
 
         // Schedule management
-        Route::get('/schedules',              [\App\Http\Controllers\Api\V1\Operator\ScheduleController::class, 'index']);
-        Route::post('/schedules',             [\App\Http\Controllers\Api\V1\Operator\ScheduleController::class, 'store']);
-        Route::put('/schedules/{id}',         [\App\Http\Controllers\Api\V1\Operator\ScheduleController::class, 'update']);
+        Route::get('/schedules',[\App\Http\Controllers\Api\V1\Operator\ScheduleController::class, 'index']);
+        Route::post('/schedules',[\App\Http\Controllers\Api\V1\Operator\ScheduleController::class, 'store']);
+        Route::put('/schedules/{id}',[\App\Http\Controllers\Api\V1\Operator\ScheduleController::class, 'update']);
         Route::delete('/schedules/{id}',      [\App\Http\Controllers\Api\V1\Operator\ScheduleController::class, 'destroy']);
 
         // Booking management (view passengers on their buses)
