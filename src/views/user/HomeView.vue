@@ -1,50 +1,27 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 
-const fromLocation = ref('')
-const toLocation = ref('')
-const journeyDate = ref('')
-const cities = ref([])
-
-const fetchCities = async () => {
-  // Simulator API call
-  // In a real application, replace this with:
-  // const response = await fetch('YOUR_API_ENDPOINT/cities')
-  // cities.value = await response.json()
-  
-  // Mock data for demonstration
-  setTimeout(() => {
-    cities.value = [
-      { id: 1, name: 'New York' },
-      { id: 2, name: 'Los Angeles' },
-      { id: 3, name: 'Chicago' },
-      { id: 4, name: 'Houston' },
-      { id: 5, name: 'Phoenix' },
-      { id: 6, name: 'Philadelphia' },
-      { id: 7, name: 'San Antonio' },
-      { id: 8, name: 'San Diego' },
-      { id: 9, name: 'Dallas' },
-      { id: 10, name: 'San Jose' }
-    ]
-  }, 500)
-}
-
+import { useSearchStore } from '@/stores/user/search'
+import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
+
+const searchStore = useSearchStore()
+const { searchParams, cities } = storeToRefs(searchStore)
 const router = useRouter()
 
 const handleSearch = () => {
     router.push({
         name: 'search',
         query: {
-            from: fromLocation.value,
-            to: toLocation.value,
-            date: journeyDate.value
+            from: searchParams.value.from,
+            to: searchParams.value.to,
+            date: searchParams.value.date
         }
     })
 }
 
 onMounted(() => {
-  fetchCities()
+  searchStore.fetchCities()
 })
 
 const featuredEvents = [
@@ -123,7 +100,7 @@ const busOperators = [
                     <label class="block text-xs font-bold text-gray-300 uppercase tracking-wide ml-8 mb-1">From</label>
                     <div class="relative flex items-center">
                         <svg class="w-5 h-5 text-indigo-400 absolute left-0 ml-1 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        <select v-model="fromLocation" class="bg-transparent text-white focus:outline-none w-full pl-8 pr-8 font-medium appearance-none cursor-pointer">
+                        <select v-model="searchParams.from" class="bg-transparent text-white focus:outline-none w-full pl-8 pr-8 font-medium appearance-none cursor-pointer">
                             <option value="" class="bg-gray-800 text-gray-400">Select Departure</option>
                             <option v-for="city in cities" :key="city.id" :value="city.name" class="bg-gray-800 text-white hover:bg-gray-700 py-2">{{ city.name }}</option>
                         </select>
@@ -136,7 +113,7 @@ const busOperators = [
                     <label class="block text-xs font-bold text-gray-300 uppercase tracking-wide ml-8 mb-1">To</label>
                     <div class="relative flex items-center">
                         <svg class="w-5 h-5 text-purple-400 absolute left-0 ml-1 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                         <select v-model="toLocation" class="bg-transparent text-white focus:outline-none w-full pl-8 pr-8 font-medium appearance-none cursor-pointer">
+                         <select v-model="searchParams.to" class="bg-transparent text-white focus:outline-none w-full pl-8 pr-8 font-medium appearance-none cursor-pointer">
                             <option value="" class="bg-gray-800 text-gray-400">Select Destination</option>
                             <option v-for="city in cities" :key="city.id" :value="city.name" class="bg-gray-800 text-white hover:bg-gray-700 py-2">{{ city.name }}</option>
                         </select>
@@ -149,7 +126,7 @@ const busOperators = [
                     <label class="block text-xs font-bold text-gray-300 uppercase tracking-wide ml-8 mb-1">Journey Date</label>
                     <div class="flex items-center">
                         <svg class="w-5 h-5 text-pink-400 mr-3 absolute pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        <input v-model="journeyDate" type="date" class="bg-transparent text-white placeholder-gray-400 focus:outline-none w-full pl-8 font-medium [color-scheme:dark] cursor-pointer">
+                        <input v-model="searchParams.date" type="date" class="bg-transparent text-white placeholder-gray-400 focus:outline-none w-full pl-8 font-medium [color-scheme:dark] cursor-pointer">
                     </div>
                 </div>
 

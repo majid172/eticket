@@ -1,112 +1,27 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import api from '@/services/api'
 
-const bookings = ref([
-  {
-    id: 'BK-24612474-53',
-    customer: { name: 'Kathryn Murphy', avatar: '' },
-    date: '03/25/24',
-    time: '18:45',
-    route: { name: 'Dhaka - Chittagong', type: 'AC Business' },
-    seats: ['A1', 'A2'],
-    amount: '234.00',
-    status: 'Pending',
-    checked: false
-  },
-  {
-    id: 'BK-24536474-45',
-    customer: { name: 'Floyd Miles', avatar: '' },
-    date: '03/25/24',
-    time: '12:30',
-    route: { name: 'Sylhet - Dhaka', type: 'Non-AC' },
-    amount: '1,784.00',
-    status: 'Completed',
-    checked: false
-  },
-  {
-    id: 'BK-26466374-44',
-    customer: { name: 'Courtney Henry', avatar: '' },
-    date: '03/24/24',
-    time: '15:20',
-    route: { name: 'Dhaka - Coxs Bazar', type: 'Sleeper' },
-    amount: '24.50',
-    status: 'Completed',
-    checked: false
-  },
-  {
-    id: 'BK-24655532-11',
-    customer: { name: 'Cody Fisher', avatar: '' },
-    date: '03/23/24',
-    time: '10:55',
-    route: { name: 'Chittagong - Dhaka', type: 'AC Economy' },
-    amount: '158.00',
-    status: 'Completed',
-    checked: false
-  },
-  {
-    id: 'BK-64642415-23',
-    customer: { name: 'Darlene Robertson', avatar: '' },
-    date: '03/23/24',
-    time: '04:30',
-    route: { name: 'Dhaka - Rajshahi', type: 'AC Business' },
-    amount: '785.00',
-    status: 'Completed',
-    checked: false
-  },
-  {
-    id: 'BK-64641474-51',
-    customer: { name: 'Albert Flores', avatar: '' },
-    date: '03/22/24',
-    time: '17:15',
-    route: { name: 'Khulna - Dhaka', type: 'Non-AC' },
-    amount: '88.95',
-    status: 'Completed',
-    checked: false
-  },
-  {
-    id: 'BK-24242474-63',
-    customer: { name: 'Devon Lane', avatar: '' },
-    date: '03/22/24',
-    time: '11:40',
-    route: { name: 'Dhaka - Barisal', type: 'AC Business' },
-    amount: '88.95',
-    status: 'Completed',
-    checked: false
-  },
-   {
-    id: 'BK-24612424-12',
-    customer: { name: 'Darrell Steward', avatar: '' },
-    date: '03/21/24',
-    time: '14:05',
-    route: { name: 'Rangpur - Dhaka', type: 'AC Economy' },
-    amount: '34.05',
-    status: 'Completed',
-    checked: false
-  },
-  {
-    id: 'BK-24615374-53',
-    customer: { name: 'Savannah Nguyen', avatar: '' },
-    date: '03/21/24',
-    time: '09:20',
-    route: { name: 'Dhaka - Sylhet', type: 'Sleeper' },
-    amount: '6,534.53',
-    status: 'Completed',
-    checked: false
-  },
-  {
-    id: 'BK-24451474-32',
-    customer: { name: 'Arlene McCoy', avatar: '' },
-    date: '03/21/24',
-    time: '09:15',
-    route: { name: 'Cumilla - Dhaka', type: 'Non-AC' },
-    amount: '834.00',
-    status: 'Completed',
-    checked: false
-  }
-])
+const bookings = ref([])
+const loading = ref(false)
+const apiError = ref('')
+
+async function fetchBookings() {
+    loading.value = true
+    apiError.value = ''
+    try {
+        const { data } = await api.get('/admin/bookings')
+        bookings.value = data.data || data
+    } catch(err) {
+        apiError.value = err.response?.data?.message || 'Failed to fetch bookings'
+    } finally {
+        loading.value = false
+    }
+}
+
+onMounted(fetchBookings)
 
 const searchQuery = ref('')
-const currentPage = ref(2) // Matching the screenshot example
 const allChecked = ref(false)
 
 const getInitials = (name) => {
@@ -118,24 +33,40 @@ const toggleAll = () => {
 }
 
 const getStatusStyles = (status) => {
-    if (status === 'Pending') {
+    const s = status?.toLowerCase()
+    if (s === 'pending') {
         return 'bg-yellow-50 text-yellow-700'
-    } else if (status === 'Completed') {
+    } else if (s === 'confirmed' || s === 'completed') {
         return 'bg-green-50 text-green-700'
+    } else if (s === 'cancelled') {
+        return 'bg-rose-50 text-rose-700'
     } else {
         return 'bg-gray-50 text-gray-700'
     }
 }
 
 const getStatusIconColor = (status) => {
-     if (status === 'Pending') {
+    const s = status?.toLowerCase()
+     if (s === 'pending') {
         return 'text-yellow-500'
-    } else if (status === 'Completed') {
+    } else if (s === 'confirmed' || s === 'completed') {
         return 'text-green-500'
+    } else if (s === 'cancelled') {
+        return 'text-rose-500'
     } else {
         return 'text-gray-500'
     }
 }
+
+const filteredBookings = computed(() => {
+    if (!searchQuery.value) return bookings.value
+    const query = searchQuery.value.toLowerCase()
+    return bookings.value.filter(booking => 
+        (booking.booking_reference || '').toLowerCase().includes(query) || 
+        (booking.primary_passenger_name || '').toLowerCase().includes(query) ||
+        (booking.primary_passenger_phone || '').toLowerCase().includes(query)
+    )
+})
 
 </script>
 
@@ -176,15 +107,22 @@ const getStatusIconColor = (status) => {
                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"></path></svg>
                  Sort
              </button>
-             <button class="flex items-center px-4 py-2 bg-black text-white rounded-full text-sm font-medium hover:bg-gray-800 transition-colors shadow-sm ml-1">
-                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                 Add Booking
-             </button>
         </div>
     </div>
 
+    <!-- API Error -->
+    <div v-if="apiError" class="mb-4 flex items-center gap-3 bg-rose-50 border border-rose-200 text-rose-700 text-sm px-5 py-3 rounded-xl">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      {{ apiError }}
+    </div>
+
+    <!-- Loading -->
+    <div v-if="loading" class="flex justify-center items-center py-12">
+        <svg class="w-8 h-8 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+    </div>
+
     <!-- Table Container -->
-    <div class="overflow-x-auto rounded-lg border border-gray-100">
+    <div v-else class="overflow-x-auto rounded-lg border border-gray-100">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-gray-50/80 border-b border-gray-100">
@@ -202,22 +140,26 @@ const getStatusIconColor = (status) => {
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-50">
-                <tr v-for="booking in bookings" :key="booking.id" class="hover:bg-gray-50/50 transition-colors group">
+                <tr v-for="booking in filteredBookings" :key="booking.id" class="hover:bg-gray-50/50 transition-colors group">
                     <td class="p-4">
                         <input type="checkbox" v-model="booking.checked" class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
                     </td>
-                    <td class="p-4 text-sm font-medium text-gray-900">{{ booking.id }}</td>
+                    <td class="p-4 text-sm font-medium text-gray-900">{{ booking.booking_reference }}</td>
                     <td class="p-4">
                         <div class="flex items-center">
                             <!-- Avatar Placeholder -->
                             <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500 mr-3">
-                                {{ getInitials(booking.customer.name) }}
+                                {{ getInitials(booking.primary_passenger_name || 'U N') }}
                             </div>
-                            <span class="text-sm font-medium text-gray-700">{{ booking.customer.name }}</span>
+                            <div class="flex flex-col">
+                                <span class="text-sm font-medium text-gray-700">{{ booking.primary_passenger_name }}</span>
+                                <span class="text-xs text-gray-500">{{ booking.primary_passenger_phone }}</span>
+                            </div>
                         </div>
                     </td>
                     <td class="p-4 text-sm text-gray-600">
-                        {{ booking.date }} - {{ booking.time }}
+                        {{ booking.schedule?.travel_date }}<br>
+                        <span class="text-xs text-blue-600">{{ booking.schedule?.departure_time }}</span>
                     </td>
                     <td class="p-4">
                         <div class="flex items-center gap-2">
@@ -225,23 +167,23 @@ const getStatusIconColor = (status) => {
                                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
                             </span>
                              <div class="flex flex-col">
-                                <span class="text-sm font-medium text-gray-700">{{ booking.route.name }}</span>
-                                <span class="text-xs text-gray-400">{{ booking.route.type }}</span>
+                                <span class="text-sm font-medium text-gray-700">{{ booking.schedule?.route?.source_city }} &rarr; {{ booking.schedule?.route?.destination_city }}</span>
+                                <span class="text-xs text-gray-400">{{ booking.schedule?.bus?.bus_name }} ({{ booking.schedule?.bus?.bus_type }})</span>
                              </div>
                         </div>
                     </td>
                     <td class="p-4">
                         <div class="flex gap-1 flex-wrap">
-                            <span v-for="seat in booking.seats" :key="seat" class="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                                {{ seat || 'General' }}
+                            <span v-for="seat in booking.seats" :key="seat.id" class="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                {{ seat.seat?.seat_number }}
                             </span>
                         </div>
                     </td>
-                    <td class="p-4 text-sm font-medium text-gray-900">৳{{ booking.amount }}</td>
+                    <td class="p-4 text-sm font-medium text-gray-900">৳{{ booking.total_price }}</td>
                     <td class="p-4">
-                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium" :class="getStatusStyles(booking.status)">
-                            <svg class="w-2 h-2 mr-1.5" :class="getStatusIconColor(booking.status)" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
-                            {{ booking.status }}
+                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize" :class="getStatusStyles(booking.booking_status)">
+                            <svg class="w-2 h-2 mr-1.5" :class="getStatusIconColor(booking.booking_status)" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                            {{ booking.booking_status }}
                         </span>
                     </td>
                     <td class="p-4 text-right">
@@ -253,6 +195,11 @@ const getStatusIconColor = (status) => {
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
+                    </td>
+                </tr>
+                <tr v-if="filteredBookings.length === 0">
+                    <td colspan="9" class="p-8 text-center text-gray-500">
+                        No platform bookings found.
                     </td>
                 </tr>
             </tbody>

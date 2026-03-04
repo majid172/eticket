@@ -1,17 +1,16 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import api from '@/services/api'
 
-const activeTab = ref('profile')
+const activeTab = ref('bookings')
 
 const tabs = [
+  { id: 'bookings', label: 'My Bookings', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
   { id: 'profile', label: 'Account & Profile', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
   { id: 'security', label: 'Security & Privacy', icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' },
-  { id: 'payment', label: 'Payment Settings', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
   { id: 'preferences', label: 'Travel Preferences', icon: 'M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z' }, // Using a bookmark-like icon for preferences
   { id: 'notifications', label: 'Notifications', icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
   { id: 'accessibility', label: 'Language & Accessibility', icon: 'M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129' },
-  { id: 'refunds', label: 'Refunds & Cancellations', icon: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' },
-  { id: 'support', label: 'Support & Help', icon: 'M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z' },
   { id: 'account', label: 'Account Management', icon: 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' }
 ]
 
@@ -57,6 +56,37 @@ const save = (section) => {
     alert(`${section} settings saved!`)
 }
 
+// Bookings Logic
+const bookings = ref([])
+const loadingBookings = ref(false)
+
+const fetchBookings = async () => {
+    loadingBookings.value = true;
+    try {
+        const { data } = await api.get('/passenger/bookings')
+        bookings.value = data.data || []
+    } catch(err) {
+        console.error("Failed to fetch passenger bookings", err)
+    } finally {
+        loadingBookings.value = false;
+    }
+}
+
+const cancelBooking = async (id) => {
+    if(!confirm("Are you sure you want to cancel this booking?")) return;
+    try {
+        await api.delete(`/passenger/bookings/${id}`)
+        alert("Booking cancelled successfully")
+        fetchBookings()
+    } catch(err) {
+        alert(err.response?.data?.message || "Failed to cancel booking")
+    }
+}
+
+onMounted(() => {
+    fetchBookings()
+})
+
 </script>
 
 <template>
@@ -87,8 +117,46 @@ const save = (section) => {
 
         <!-- Content Area -->
         <div class="flex-1">
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 min-h-[500px]">
                 
+                <!-- My Bookings -->
+                <div v-show="activeTab === 'bookings'" class="space-y-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900">My Bookings</h2>
+                        <p class="text-sm text-gray-500 mt-1">View and manage your upcoming and past trips.</p>
+                    </div>
+
+                    <div v-if="loadingBookings" class="flex justify-center items-center py-12">
+                        <svg class="w-8 h-8 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                    </div>
+
+                    <div v-else-if="bookings.length === 0" class="text-center py-12 text-gray-500">
+                        <p>You have no bookings yet.</p>
+                    </div>
+
+                    <div v-else class="space-y-4">
+                        <div v-for="booking in bookings" :key="booking.id" class="border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-50/50">
+                            <div>
+                                <p class="font-bold text-gray-900 text-lg">{{ booking.schedule?.route?.source_city || 'Origin' }} to {{ booking.schedule?.route?.destination_city || 'Destination' }}</p>
+                                <p class="text-sm text-gray-600 mt-1">PNR: <span class="font-mono font-bold">{{ booking.booking_reference }}</span></p>
+                                <p class="text-sm text-gray-600 mt-1">Date: {{ booking.schedule?.travel_date || 'N/A' }} | Time: {{ booking.schedule?.departure_time || 'N/A' }}</p>
+                                <p class="text-sm text-gray-600 mt-1">Seats: 
+                                    <span class="font-bold text-indigo-600" v-for="seat in booking.seats" :key="seat.id">{{ seat.seat?.seat_number }} </span>
+                                </p>
+                            </div>
+                            <div class="mt-4 sm:mt-0 text-right flex flex-col items-end">
+                                <span :class="{'bg-green-100 text-green-700': booking.booking_status === 'confirmed', 'bg-red-100 text-red-700': booking.booking_status === 'cancelled', 'bg-yellow-100 text-yellow-700': booking.booking_status === 'pending'}" class="px-3 py-1 rounded-full text-xs font-bold uppercase mb-2">
+                                    {{ booking.booking_status }}
+                                </span>
+                                <p class="font-bold text-gray-900 mb-2">৳{{ booking.total_price }}</p>
+                                <button v-if="booking.booking_status !== 'cancelled'" @click="cancelBooking(booking.id)" class="text-red-500 hover:text-red-700 text-sm font-semibold border-b border-red-500 hover:border-red-700 transition">
+                                    Cancel Booking
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Account & Profile -->
                 <div v-show="activeTab === 'profile'" class="space-y-8">
                     <div>
@@ -343,7 +411,7 @@ const save = (section) => {
                  </div>
 
                  <!-- Placeholder for other tabs -->
-                 <div v-if="['payment', 'refunds', 'support'].includes(activeTab)" class="flex flex-col items-center justify-center py-12 text-center text-gray-500">
+                 <div v-if="['refunds', 'support'].includes(activeTab)" class="flex flex-col items-center justify-center py-12 text-center text-gray-500">
                      <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                      <h3 class="text-lg font-medium text-gray-900 mb-1">Coming Soon</h3>
                      <p class="text-sm">This section is currently under development.</p>

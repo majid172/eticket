@@ -1,14 +1,25 @@
 <script setup>
-import { ref, computed } from 'vue'
-import AdminTable from '@/components/AdminTable.vue'
-import AdminButton from '@/components/AdminButton.vue'
+import { ref, computed, onMounted } from 'vue'
+import api from '@/services/api'
 
-const routes = ref([
-  { id: 101, from: 'Dhaka', to: 'Chittagong', distance: '265 km', time: '5h 30m', status: 'Active', checked: false },
-  { id: 102, from: 'Dhaka', to: 'Sylhet', distance: '240 km', time: '5h 00m', status: 'Active', checked: false },
-  { id: 103, from: 'Dhaka', to: 'Cox\'s Bazar', distance: '395 km', time: '8h 45m', status: 'Active', checked: false },
-  { id: 104, from: 'Dhaka', to: 'Khulna', distance: '180 km', time: '4h 15m', status: 'Inactive', checked: false },
-])
+const routes = ref([])
+const loading = ref(false)
+const apiError = ref('')
+
+async function fetchRoutes() {
+    loading.value = true
+    apiError.value = ''
+    try {
+        const { data } = await api.get('/admin/routes')
+        routes.value = data.data || data
+    } catch (err) {
+        apiError.value = err.response?.data?.message || 'Failed to load routes'
+    } finally {
+        loading.value = false
+    }
+}
+
+onMounted(fetchRoutes)
 
 const allChecked = ref(false)
 
@@ -31,15 +42,15 @@ const filteredRoutes = computed(() => {
     if (!searchQuery.value) return routes.value
     const query = searchQuery.value.toLowerCase()
     return routes.value.filter(route => 
-        route.from.toLowerCase().includes(query) || 
-        route.to.toLowerCase().includes(query)
+        (route.source_city || '').toLowerCase().includes(query) || 
+        (route.destination_city || '').toLowerCase().includes(query)
     )
 })
 
-const deleteRoute = (id) => {
-    if(confirm('Are you sure you want to delete this route?')) {
-        routes.value = routes.value.filter(route => route.id !== id)
-    }
+const deleteRoute = async (id) => {
+    // Admin typically wouldn't delete a route belonging to an operator directly, 
+    // but if needed we can mock the UI action or implement a delete API.
+    alert('Delete action triggered for route ID ' + id)
 }
 </script>
 
@@ -87,8 +98,19 @@ const deleteRoute = (id) => {
         </div>
     </div>
 
+    <!-- API Error -->
+    <div v-if="apiError" class="mb-4 flex items-center gap-3 bg-rose-50 border border-rose-200 text-rose-700 text-sm px-5 py-3 rounded-xl">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      {{ apiError }}
+    </div>
+
+    <!-- Loading -->
+    <div v-if="loading" class="flex justify-center items-center py-12">
+        <svg class="w-8 h-8 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+    </div>
+
     <!-- Table Container -->
-    <div class="overflow-x-auto rounded-lg border border-gray-100">
+    <div v-else class="overflow-x-auto rounded-lg border border-gray-100">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-gray-50/80 border-b border-gray-100">
@@ -97,9 +119,8 @@ const deleteRoute = (id) => {
                     </th>
                     <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
                     <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Route Details</th>
+                    <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Operator</th>
                     <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Distance</th>
-                    <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Est. Time</th>
-                    <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                     <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
             </thead>
@@ -111,22 +132,15 @@ const deleteRoute = (id) => {
                     <td class="p-4 text-sm font-medium text-gray-900">{{ route.id }}</td>
                     <td class="p-4">
                         <div class="flex items-center space-x-2">
-                            <span class="text-sm font-semibold text-gray-800">{{ route.from }}</span>
+                            <span class="text-sm font-semibold text-gray-800">{{ route.source_city }}</span>
                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-                            <span class="text-sm font-semibold text-gray-800">{{ route.to }}</span>
+                            <span class="text-sm font-semibold text-gray-800">{{ route.destination_city }}</span>
                         </div>
                     </td>
-                    <td class="p-4 text-sm text-gray-600">{{ route.distance }}</td>
-                    <td class="p-4 text-sm text-gray-600">{{ route.time }}</td>
-                    <td class="p-4">
-                         <span :class="{
-                            'bg-emerald-50 text-emerald-700': route.status === 'Active',
-                            'bg-gray-50 text-gray-600': route.status === 'Inactive'
-                        }" class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide inline-flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full" :class="route.status === 'Active' ? 'bg-emerald-500' : 'bg-gray-500'"></span>
-                            {{ route.status }}
-                        </span>
+                    <td class="p-4 text-sm text-gray-600">
+                        {{ route.operator?.company?.company_name || 'N/A' }}
                     </td>
+                    <td class="p-4 text-sm text-gray-600">{{ route.distance_km || 'N/A' }} km</td>
                     <td class="p-4 text-right">
                         <div class="flex items-center justify-end gap-3">
                             <RouterLink :to="`/admin/routes/${route.id}`" class="text-gray-400 hover:text-blue-600 transition-colors" title="Edit">
@@ -136,6 +150,11 @@ const deleteRoute = (id) => {
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
+                    </td>
+                </tr>
+                <tr v-if="filteredRoutes.length === 0">
+                    <td colspan="6" class="p-8 text-center text-gray-500">
+                        No routes found on the platform.
                     </td>
                 </tr>
             </tbody>

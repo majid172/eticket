@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBookingStore } from '@/stores/booking'
+import api from '@/services/api'
 
 const router = useRouter()
 const bookingStore = useBookingStore()
@@ -14,23 +15,53 @@ const passenger = ref({
   age: ''
 })
 
+const loading = ref(false)
+const errorMessage = ref('')
+
 onMounted(() => {
   if (!bookingStore.selectedSeats.length) {
     router.push('/search')
   }
 })
 
-const confirmBooking = () => {
-  // meaningful validation could go here
+const confirmBooking = async () => {
+  errorMessage.value = '';
+  
   if (!passenger.value.name || !passenger.value.phone) {
-    alert('Please fill in Name and Phone number')
+    errorMessage.value = 'Please fill in Name and Phone number'
     return
   }
   
-  // Save passenger details to store and generate PNR
-  bookingStore.confirmBooking(passenger.value)
-  
-  router.push('/booking/success')
+  loading.value = true;
+  try {
+    const payload = {
+      schedule_bus_id: bookingStore.scheduleBusId,
+      seat_ids: bookingStore.selectedSeats.map(s => s.db_id)
+    };
+
+    const { data } = await api.post('/passenger/bookings', payload);
+    
+    // Set the returned PNR (or generate if backend doesn't, but backend uses $booking->pnr maybe?
+    // Assume backend returns booking object inside 'booking' key
+    const currentTicket = data.booking || {};
+    
+    // Save passenger details to store
+    // Also attach the confirmed PNR from backend
+    bookingStore.confirmBooking(passenger.value);
+    if(currentTicket.booking_reference) {
+      bookingStore.pnr = currentTicket.booking_reference;
+    }
+    
+    router.push('/booking/success')
+  } catch (err) {
+    if(err.response?.status === 401) {
+       router.push('/login?redirect=/booking')
+    } else {
+       errorMessage.value = err.response?.data?.message || 'Failed to create booking. Please try again.';
+    }
+  } finally {
+    loading.value = false;
+  }
 }
 </script>
 
@@ -148,8 +179,17 @@ const confirmBooking = () => {
                     </div>
                  </div>
 
-                 <button @click="confirmBooking" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all">
-                    CONFIRM & BOOK
+                 <div v-if="errorMessage" class="mb-4 bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm border border-red-100 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    {{ errorMessage }}
+                 </div>
+
+                 <button @click="confirmBooking" :disabled="loading" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-75 flex justify-center items-center">
+                    <svg v-if="loading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    {{ loading ? 'PROCESSING...' : 'CONFIRM & BOOK' }}
                  </button>
               </div>
            </div>

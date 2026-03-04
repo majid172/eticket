@@ -11,7 +11,7 @@ export const useAdminBusStore = defineStore("admin-bus", () => {
         loading.value = true;
         try {
             const { data } = await api.get("/admin/buses");
-            buses.value = data;
+            buses.value = data.data || data;
         } catch (error) {
             console.error("Failed to fetch buses:", error);
         } finally {

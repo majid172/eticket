@@ -2,52 +2,41 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { useOperatorScheduleStore } from '@/stores/operator/schedule'
+import { useOperatorRouteStore } from '@/stores/operator/route'
 
 const router = useRouter()
-const store  = useOperatorScheduleStore()
+const store  = useOperatorRouteStore()
 
-const { schedules: schedulesList, routes: myRoutes, buses: myBuses,
-        loading, error: apiError, noCompany } = storeToRefs(store)
+const { routes: routesList, loading, error: apiError, noCompany } = storeToRefs(store)
 
-const searchQuery       = ref('')
-const filteredSchedules = store.filteredSchedules(searchQuery)
+const searchQuery    = ref('')
+const filteredRoutes = store.filteredRoutes(searchQuery)
 
 onMounted(store.fetch)
 
-// Slide-over form (Shared Add/Edit)
+// ── Form (shared for Add + Edit) ──────────────────────────
 const showForm    = ref(false)
 const formErrors  = ref({})
 const formLoading = ref(false)
-const editingId   = ref(null)
+const editingId   = ref(null) // null = adding new
 
-const emptyForm = () => ({
-  route_id: '',
-  bus_id: '',
-  travel_date: '',
-  departure_time: '',
-  arrival_time: '',
-  base_price: ''
-})
+const emptyForm = () => ({ source_city: '', destination_city: '', distance_km: '' })
 const form = reactive(emptyForm())
 
 function openAdd() {
   editingId.value  = null
   formErrors.value = {}
   Object.assign(form, emptyForm())
-  showForm.value = true
+  showForm.value   = true
 }
 
-function openEdit(scheduleBus) {
-  editingId.value  = scheduleBus.id
+function openEdit(route) {
+  editingId.value  = route.id
   formErrors.value = {}
   Object.assign(form, {
-    route_id:       scheduleBus.schedule.route_id,
-    bus_id:         scheduleBus.bus_id,
-    travel_date:    scheduleBus.schedule.travel_date,
-    departure_time: scheduleBus.schedule.departure_time.substring(0, 5), // strip seconds
-    arrival_time:   scheduleBus.schedule.arrival_time.substring(0, 5),
-    base_price:     scheduleBus.schedule.base_price
+    source_city:      route.source_city,
+    destination_city: route.destination_city,
+    distance_km:      route.distance_km ?? ''
   })
   showForm.value = true
 }
@@ -57,7 +46,7 @@ async function saveForm() {
   formLoading.value = true
   try {
     if (editingId.value) {
-      await store.update(editingId.value, { ...form }) 
+      await store.update(editingId.value, { ...form })
     } else {
       await store.create({ ...form })
     }
@@ -71,20 +60,12 @@ async function saveForm() {
   }
 }
 
-async function confirmDelete(scheduleBus) {
-  if (!confirm(`Delete this schedule?`)) return
+async function confirmDelete(route) {
+  if (!confirm(`Delete route "${route.source_city} → ${route.destination_city}"?`)) return
   try {
-    await store.remove(scheduleBus.id)
-  } catch (err) {
-    alert(err.response?.data?.message || 'Failed to delete schedule')
-  }
-}
-
-async function updateStatus(id, newStatus) {
-  try {
-    await store.updateStatus(id, null, newStatus)
+    await store.remove(route.id)
   } catch {
-    alert('Failed to update status')
+    alert('Failed to delete route.')
   }
 }
 </script>
@@ -95,8 +76,8 @@ async function updateStatus(id, newStatus) {
     <!-- Page Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900">My Schedules</h1>
-        <p class="text-sm text-gray-500 mt-1">Plan and manage trip schedules for your buses.</p>
+        <h1 class="text-2xl font-bold text-gray-900">My Routes</h1>
+        <p class="text-sm text-gray-500 mt-1">Manage the destinations and routes your buses service.</p>
       </div>
       <button
         v-if="!noCompany"
@@ -106,7 +87,7 @@ async function updateStatus(id, newStatus) {
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
         </svg>
-        Add Schedule
+        Add Route
       </button>
     </div>
 
@@ -122,7 +103,7 @@ async function updateStatus(id, newStatus) {
           </div>
           <h2 class="text-xl font-bold text-gray-900 mb-2">Set Up Your Company First</h2>
           <p class="text-sm text-gray-500 leading-relaxed mb-8">
-            Before you can add schedules, you need to register your <strong>company profile</strong>.
+            Before you can add routes, you need to register your <strong>company profile</strong>.
           </p>
           <button
             @click="router.push({ name: 'operator-company' })"
@@ -144,11 +125,11 @@ async function updateStatus(id, newStatus) {
     <div v-if="!noCompany" class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <!-- Search Row -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4 border-b border-gray-100">
-        <h3 class="font-bold text-gray-800">Schedule List</h3>
+        <h3 class="font-bold text-gray-800">Route List</h3>
         <div class="relative">
           <input
             v-model="searchQuery"
-            type="text" placeholder="Search routes or bus..."
+            type="text" placeholder="Search cities..."
             class="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm w-full sm:w-64 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-shadow"
           >
           <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,7 +145,7 @@ async function updateStatus(id, newStatus) {
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
           </svg>
-          <span class="text-sm font-medium">Loading your schedules...</span>
+          <span class="text-sm font-medium">Loading your routes...</span>
         </div>
       </div>
 
@@ -173,63 +154,40 @@ async function updateStatus(id, newStatus) {
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="bg-gray-50/60 border-b border-gray-100">
-              <th class="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Route Info</th>
-              <th class="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Date & Time</th>
-              <th class="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Bus Info</th>
-              <th class="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Price</th>
-              <th class="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Source City</th>
+              <th class="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Destination City</th>
+              <th class="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Distance</th>
               <th class="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-50">
-            <tr v-for="s in filteredSchedules" :key="s.id" class="hover:bg-gray-50/40 transition-colors">
+            <tr v-for="r in filteredRoutes" :key="r.id" class="hover:bg-gray-50/40 transition-colors">
               <td class="px-6 py-4">
-                <span class="text-sm font-bold text-gray-900 block">{{ s.schedule.route.source_city }} &rarr; {{ s.schedule.route.destination_city }}</span>
+                <span class="text-sm font-bold text-gray-900">{{ r.source_city }}</span>
               </td>
               <td class="px-6 py-4">
-                <span class="text-sm font-medium text-gray-800 block">{{ s.schedule.travel_date }}</span>
-                <span class="text-xs text-emerald-600 block mt-0.5">{{ s.schedule.departure_time }} - {{ s.schedule.arrival_time }}</span>
+                <span class="text-sm font-bold text-gray-900">{{ r.destination_city }}</span>
               </td>
               <td class="px-6 py-4">
-                <span class="text-sm font-medium text-gray-800 block">{{ s.bus?.bus_name }} ({{ s.bus?.bus_type }})</span>
-                <span class="text-xs text-gray-500 block">{{ s.bus.bus_number }}</span>
-              </td>
-              <td class="px-6 py-4">
-                <span class="text-sm font-medium text-gray-800 block">{{ s.schedule.base_price }} {{ s.schedule.currency??'BDT' }}</span>
-              </td>
-              <td class="px-6 py-4">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border capitalize"
-                      :class="s.status === 'active' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 
-                              s.status === 'completed' ? 'bg-blue-50 text-blue-600 border-blue-200' :
-                              'bg-rose-50 text-rose-600 border-rose-200'">
-                  {{ s.status }}
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border bg-slate-50 text-slate-600 border-slate-200">
+                  {{ r.distance_km || 'N/A' }} km
                 </span>
               </td>
               <td class="px-6 py-4 text-right">
-                <div class="flex items-center justify-end gap-2">
-                  <!-- Status Quick Update -->
-                  <select v-if="s.status !== 'completed' && s.status !== 'cancelled'" 
-                          @change="updateStatus(s.id, $event.target.value)" 
-                          class="text-xs border rounded p-1 text-gray-600 bg-white">
-                      <option value="" disabled selected>Status</option>
-                      <option value="completed">Complete</option>
-                      <option value="cancelled">Cancel</option>
-                  </select>
-
+                <div class="inline-flex items-center gap-1">
                   <!-- Edit -->
-                  <button @click="openEdit(s)"
+                  <button @click="openEdit(r)"
                     class="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                    title="Edit schedule">
+                    title="Edit route">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
                   </button>
-
                   <!-- Delete -->
-                  <button @click="confirmDelete(s)" v-if="s.status === 'scheduled'"
+                  <button @click="confirmDelete(r)"
                     class="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                    title="Delete schedule">
+                    title="Delete route">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -240,18 +198,18 @@ async function updateStatus(id, newStatus) {
             </tr>
 
             <!-- Empty State -->
-            <tr v-if="filteredSchedules.length === 0">
-              <td colspan="5" class="px-6 py-16 text-center">
+            <tr v-if="filteredRoutes.length === 0">
+              <td colspan="4" class="px-6 py-16 text-center">
                 <div class="flex flex-col items-center gap-3">
                   <div class="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center">
                     <svg class="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
                     </svg>
                   </div>
-                  <p class="text-gray-500 font-medium">No schedules found</p>
-                  <p class="text-sm text-gray-400">Try adjusting your search or add a new schedule.</p>
+                  <p class="text-gray-500 font-medium">No routes found</p>
+                  <p class="text-sm text-gray-400">Try adjusting your search or add a new route.</p>
                   <button @click="openAdd" class="mt-1 px-4 py-2 bg-emerald-700 text-white text-sm font-medium rounded-lg hover:bg-emerald-800 transition-colors">
-                    Add First Schedule
+                    Add First Route
                   </button>
                 </div>
               </td>
@@ -271,8 +229,8 @@ async function updateStatus(id, newStatus) {
       <div v-if="showForm" class="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-50 flex flex-col">
         <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100">
           <div>
-            <h2 class="text-lg font-bold text-gray-900">{{ editingId ? 'Update Schedule' : 'Add New Schedule' }}</h2>
-            <p class="text-sm text-gray-500 mt-0.5">{{ editingId ? 'Modify schedule details.' : 'Define a trip schedule.' }}</p>
+            <h2 class="text-lg font-bold text-gray-900">{{ editingId ? 'Edit Route' : 'Add New Route' }}</h2>
+            <p class="text-sm text-gray-500 mt-0.5">{{ editingId ? 'Update the route details.' : 'Define a new operational route.' }}</p>
           </div>
           <button @click="showForm = false" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -285,58 +243,30 @@ async function updateStatus(id, newStatus) {
           </div>
 
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Route <span class="text-rose-500">*</span></label>
-            <select v-model="form.route_id" class="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white" :class="formErrors.route_id ? 'border-rose-400' : 'border-gray-200'">
-                <option value="" disabled>Select a route</option>
-                <option v-for="r in myRoutes" :key="r.id" :value="r.id">{{ r.source_city }} to {{ r.destination_city }}</option>
-            </select>
-            <p v-if="formErrors.route_id" class="mt-1 text-xs text-rose-500">{{ formErrors.route_id[0] }}</p>
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Bus <span class="text-rose-500">*</span></label>
-            <select v-model="form.bus_id" class="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white" :class="formErrors.bus_id ? 'border-rose-400' : 'border-gray-200'">
-                <option value="" disabled>Select a bus</option>
-                <option v-for="b in myBuses" :key="b.id" :value="b.id">{{ b.bus_number }} ({{ b.bus_type }})</option>
-            </select>
-            <p v-if="formErrors.bus_id" class="mt-1 text-xs text-rose-500">{{ formErrors.bus_id[0] }}</p>
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Travel Date <span class="text-rose-500">*</span></label>
-            <input v-model="form.travel_date" type="date"
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Source City <span class="text-rose-500">*</span></label>
+            <input v-model="form.source_city" type="text" placeholder="e.g. Dhaka"
               class="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
-              :class="formErrors.travel_date ? 'border-rose-400 bg-rose-50' : 'border-gray-200 bg-gray-50'"
+              :class="formErrors.source_city ? 'border-rose-400 bg-rose-50' : 'border-gray-200 bg-gray-50'"
             >
-            <p v-if="formErrors.travel_date" class="mt-1 text-xs text-rose-500">{{ formErrors.travel_date[0] }}</p>
-          </div>
-          
-          <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Departure Time <span class="text-rose-500">*</span></label>
-                <input v-model="form.departure_time" type="time"
-                  class="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
-                  :class="formErrors.departure_time ? 'border-rose-400 bg-rose-50' : 'border-gray-200 bg-gray-50'"
-                >
-                <p v-if="formErrors.departure_time" class="mt-1 text-xs text-rose-500">{{ formErrors.departure_time[0] }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Arrival Time <span class="text-rose-500">*</span></label>
-                <input v-model="form.arrival_time" type="time"
-                  class="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
-                  :class="formErrors.arrival_time ? 'border-rose-400 bg-rose-50' : 'border-gray-200 bg-gray-50'"
-                >
-                <p v-if="formErrors.arrival_time" class="mt-1 text-xs text-rose-500">{{ formErrors.arrival_time[0] }}</p>
-              </div>
+            <p v-if="formErrors.source_city" class="mt-1 text-xs text-rose-500">{{ formErrors.source_city[0] }}</p>
           </div>
 
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Base Price (৳) <span class="text-rose-500">*</span></label>
-            <input v-model="form.base_price" type="number" step="0.01" placeholder="500"
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Destination City <span class="text-rose-500">*</span></label>
+            <input v-model="form.destination_city" type="text" placeholder="e.g. Chittagong"
               class="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
-              :class="formErrors.base_price ? 'border-rose-400 bg-rose-50' : 'border-gray-200 bg-gray-50'"
+              :class="formErrors.destination_city ? 'border-rose-400 bg-rose-50' : 'border-gray-200 bg-gray-50'"
             >
-            <p v-if="formErrors.base_price" class="mt-1 text-xs text-rose-500">{{ formErrors.base_price[0] }}</p>
+            <p v-if="formErrors.destination_city" class="mt-1 text-xs text-rose-500">{{ formErrors.destination_city[0] }}</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Distance (km) <span class="text-rose-500">*</span></label>
+            <input v-model="form.distance_km" type="number" placeholder="250"
+              class="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+              :class="formErrors.distance_km ? 'border-rose-400 bg-rose-50' : 'border-gray-200 bg-gray-50'"
+            >
+            <p v-if="formErrors.distance_km" class="mt-1 text-xs text-rose-500">{{ formErrors.distance_km[0] }}</p>
           </div>
         </form>
 
@@ -351,7 +281,7 @@ async function updateStatus(id, newStatus) {
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
             </svg>
-            {{ formLoading ? 'Saving...' : (editingId ? 'Save Changes' : 'Add Schedule') }}
+            {{ formLoading ? 'Saving...' : (editingId ? 'Save Changes' : 'Add Route') }}
           </button>
         </div>
       </div>
