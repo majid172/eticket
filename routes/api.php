@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\Operator\BusController;
 use App\Http\Controllers\Api\V1\Operator\CompanyController;
 use App\Http\Controllers\Api\V1\Operator\RouteController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\V1\Passenger\ScheduleController;
 
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Admin\BusController as AdminBusController;
@@ -28,9 +29,9 @@ Route::prefix('auth')->group(function () {
     Route::post('/login',    [AuthController::class, 'login']);
 });
 
-Route::get('/routes/cities',   [\App\Http\Controllers\Api\V1\Passenger\ScheduleController::class, 'cities']);
-Route::get('/schedules',       [\App\Http\Controllers\Api\V1\Passenger\ScheduleController::class, 'index']);
-Route::get('/schedules/{id}/seats', [\App\Http\Controllers\Api\V1\Passenger\ScheduleController::class, 'seats']);
+Route::get('/routes/cities',   [ScheduleController::class, 'cities']);
+Route::get('/schedules',       [ScheduleController::class, 'index']);
+Route::get('/schedules/{id}/seats', [ScheduleController::class, 'seats']);
 
 // ─── Authenticated Routes ─────────────────────────────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
