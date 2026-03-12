@@ -20,7 +20,8 @@ const {
   seatLayout, 
   loadingLayout, 
   totalPrice,
-  seatType
+  seatType,
+  availableOperators
 } = storeToRefs(searchStore)
 
 const toggleSeats = (ticketId) => searchStore.toggleSeats(ticketId)
@@ -55,6 +56,44 @@ const proceedToBooking = (ticket) => {
     )
     bookingStore.scheduleBusId = ticket.id;
     router.push('/booking')
+}
+
+const sortOrder = ref('') // 'asc' | 'desc'
+const selectedOperators = ref([])
+const selectedBusTypes = ref([])
+
+const sortedTickets = computed(() => {
+    let result = [...tickets.value]
+    
+    // Filter by operators
+    if (selectedOperators.value.length > 0) {
+        result = result.filter(t => selectedOperators.value.includes(t.operator))
+    }
+    
+    // Filter by bus type
+    if (selectedBusTypes.value.length > 0) {
+        result = result.filter(t => {
+            const typeStr = t.isAc ? 'AC' : 'Non AC'
+            return selectedBusTypes.value.includes(typeStr)
+        })
+    }
+
+    if (sortOrder.value === 'asc') {
+        result.sort((a, b) => a.price - b.price)
+    } else if (sortOrder.value === 'desc') {
+        result.sort((a, b) => b.price - a.price)
+    }
+    return result
+})
+
+const sortByPrice = (order) => {
+    sortOrder.value = order
+}
+
+const resetFilters = () => {
+    selectedOperators.value = []
+    selectedBusTypes.value = []
+    sortOrder.value = ''
 }
 </script>
 
@@ -115,7 +154,7 @@ const proceedToBooking = (ticket) => {
            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
                   <h3 class="font-bold text-lg text-gray-900">Filters</h3>
-                  <button class="text-indigo-600 text-xs font-bold uppercase hover:text-indigo-800 transition-colors">Reset All</button>
+                  <button @click="resetFilters" class="text-indigo-600 text-xs font-bold uppercase hover:text-indigo-800 transition-colors">Reset All</button>
                </div>
 
                <!-- Filter Groups -->
@@ -125,11 +164,11 @@ const proceedToBooking = (ticket) => {
                       <h4 class="font-bold text-xs text-gray-500 uppercase mb-3">Bus Type</h4>
                       <div class="space-y-3">
                           <label class="flex items-center space-x-3 cursor-pointer group">
-                              <input type="checkbox" class="form-checkbox text-indigo-600 rounded-md focus:ring-indigo-500 w-5 h-5 border-gray-300">
+                              <input type="checkbox" value="AC" v-model="selectedBusTypes" class="form-checkbox text-indigo-600 rounded-md focus:ring-indigo-500 w-5 h-5 border-gray-300">
                               <span class="text-gray-700 text-sm group-hover:text-indigo-600 transition-colors">AC</span>
                           </label>
                            <label class="flex items-center space-x-3 cursor-pointer group">
-                              <input type="checkbox" class="form-checkbox text-indigo-600 rounded-md focus:ring-indigo-500 w-5 h-5 border-gray-300">
+                              <input type="checkbox" value="Non AC" v-model="selectedBusTypes" class="form-checkbox text-indigo-600 rounded-md focus:ring-indigo-500 w-5 h-5 border-gray-300">
                               <span class="text-gray-700 text-sm group-hover:text-indigo-600 transition-colors">Non AC</span>
                           </label>
                       </div>
@@ -138,9 +177,12 @@ const proceedToBooking = (ticket) => {
                   <!-- Operator -->
                   <div>
                       <h4 class="font-bold text-xs text-gray-500 uppercase mb-3">Operator</h4>
-                      <div class="relative">
-                          <input type="text" placeholder="Search Operator" class="w-full text-sm border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-4 py-2.5 border bg-gray-50 transition-shadow">
-                          <svg class="w-4 h-4 text-gray-400 absolute right-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                      <div class="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                          <label v-for="operator in availableOperators" :key="operator" class="flex items-center space-x-3 cursor-pointer group">
+                              <input type="checkbox" :value="operator" v-model="selectedOperators" class="form-checkbox text-indigo-600 rounded-md focus:ring-indigo-500 w-5 h-5 border-gray-300">
+                              <span class="text-gray-700 text-sm group-hover:text-indigo-600 transition-colors">{{ operator }}</span>
+                          </label>
+                          <div v-if="availableOperators.length === 0" class="text-xs text-gray-400">No operators available</div>
                       </div>
                   </div>
 
@@ -182,8 +224,22 @@ const proceedToBooking = (ticket) => {
            <!-- Sort Bar -->
            <div class="flex justify-end space-x-3">
                <span class="text-sm text-gray-500 self-center mr-2">Sort by:</span>
-               <button class="px-4 py-2 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:border-indigo-500 hover:text-indigo-600 transition-colors uppercase">Price: Low to High</button>
-               <button class="px-4 py-2 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:border-indigo-500 hover:text-indigo-600 transition-colors uppercase">Price: High to Low</button>
+               <button 
+                   @click="sortByPrice('asc')" 
+                   :class="[
+                       'px-4 py-2 text-xs font-bold uppercase transition-colors rounded-lg border',
+                       sortOrder === 'asc' ? 'border-indigo-500 text-indigo-600 bg-indigo-50' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-500 hover:text-indigo-600'
+                   ]">
+                   Price: Low to High
+               </button>
+               <button 
+                   @click="sortByPrice('desc')" 
+                   :class="[
+                       'px-4 py-2 text-xs font-bold uppercase transition-colors rounded-lg border',
+                       sortOrder === 'desc' ? 'border-indigo-500 text-indigo-600 bg-indigo-50' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-500 hover:text-indigo-600'
+                   ]">
+                   Price: High to Low
+               </button>
            </div>
 
            <!-- Loading States -->
@@ -201,7 +257,7 @@ const proceedToBooking = (ticket) => {
            </div>
 
            <!-- Ticket List -->
-           <div v-else v-for="ticket in tickets" :key="ticket.id" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 group">
+           <div v-else v-for="ticket in sortedTickets" :key="ticket.id" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 group">
                 <div class="p-6">
                     <div class="flex flex-col md:flex-row justify-between">
                         <!-- Bus Info -->

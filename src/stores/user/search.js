@@ -152,6 +152,11 @@ export const useSearchStore = defineStore('search', () => {
         return ticket ? ticket.price * selectedSeats.value.length : 0
     })
 
+    const availableOperators = computed(() => {
+        const operators = tickets.value.map(t => t.operator)
+        return [...new Set(operators)].sort()
+    })
+
     return {
         searchParams,
         loadingTickets,
@@ -163,6 +168,7 @@ export const useSearchStore = defineStore('search', () => {
         loadingLayout,
         seatType,
         totalPrice,
+        availableOperators,
         fetchSchedules,
         fetchCities,
         toggleSeats,
