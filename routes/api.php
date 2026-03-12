@@ -33,6 +33,7 @@ Route::get('/routes/cities',   [ScheduleController::class, 'cities']);
 Route::get('/routes/popular',  [ScheduleController::class, 'popularRoutes']);
 Route::get('/schedules',       [ScheduleController::class, 'index']);
 Route::get('/schedules/{id}/seats', [ScheduleController::class, 'seats']);
+Route::get('/companies',       [\App\Http\Controllers\Api\V1\Public\CompanyController::class, 'index']);
 
 
 // ─── Authenticated Routes ─────────────────────────────────────────────────────
