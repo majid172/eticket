@@ -1,0 +1,254 @@
+{
+    "schedule_bus":  {
+                         "id":  1,
+                         "schedule_id":  1,
+                         "bus_id":  1,
+                         "available_seats":  40,
+                         "status":  "scheduled",
+                         "schedule":  {
+                                          "id":  1,
+                                          "route_id":  1,
+                                          "travel_date":  "2026-03-10",
+                                          "departure_time":  "07:00:00",
+                                          "arrival_time":  "13:00:00",
+                                          "base_price":  "750.00",
+                                          "status":  "active",
+                                          "created_at":  "2026-03-12T06:11:53.000000Z",
+                                          "updated_at":  "2026-03-12T06:11:53.000000Z",
+                                          "route":  {
+                                                        "id":  1,
+                                                        "source_city":  "Dhaka",
+                                                        "destination_city":  "Chittagong",
+                                                        "distance_km":  250,
+                                                        "status":  1,
+                                                        "created_at":  "2026-03-12T06:11:53.000000Z",
+                                                        "updated_at":  "2026-03-12T06:11:53.000000Z"
+                                                    }
+                                      },
+                         "bus":  {
+                                     "id":  1,
+                                     "company_id":  1,
+                                     "bus_name":  "Green Express 1",
+                                     "bus_number":  "DHA-1001",
+                                     "bus_type":  "AC",
+                                     "total_seats":  40,
+                                     "status":  "active",
+                                     "created_at":  "2026-03-12T06:11:53.000000Z",
+                                     "updated_at":  "2026-03-12T06:11:53.000000Z",
+                                     "company":  {
+                                                     "id":  1,
+                                                     "user_id":  2,
+                                                     "company_name":  "Green Express",
+                                                     "trade_license":  "TL-2024-001",
+                                                     "contact_phone":  "01711111111",
+                                                     "contact_email":  "info@greenexpress.com",
+                                                     "address":  "Motijheel, Dhaka",
+                                                     "status":  "approved",
+                                                     "created_at":  "2026-03-12T06:11:53.000000Z",
+                                                     "updated_at":  "2026-03-12T06:11:53.000000Z"
+                                                 }
+                                 }
+                     },
+    "seats":  [
+                  {
+                      "id":  "A1",
+                      "seat_number":  "A1",
+                      "is_booked":  true
+                  },
+                  {
+                      "id":  "A2",
+                      "seat_number":  "A2",
+                      "is_booked":  true
+                  },
+                  {
+                      "id":  "A3",
+                      "seat_number":  "A3",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "A4",
+                      "seat_number":  "A4",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "B1",
+                      "seat_number":  "B1",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "B2",
+                      "seat_number":  "B2",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "B3",
+                      "seat_number":  "B3",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "B4",
+                      "seat_number":  "B4",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "C1",
+                      "seat_number":  "C1",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "C2",
+                      "seat_number":  "C2",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "C3",
+                      "seat_number":  "C3",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "C4",
+                      "seat_number":  "C4",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "D1",
+                      "seat_number":  "D1",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "D2",
+                      "seat_number":  "D2",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "D3",
+                      "seat_number":  "D3",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "D4",
+                      "seat_number":  "D4",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "E1",
+                      "seat_number":  "E1",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "E2",
+                      "seat_number":  "E2",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "E3",
+                      "seat_number":  "E3",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "E4",
+                      "seat_number":  "E4",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "F1",
+                      "seat_number":  "F1",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "F2",
+                      "seat_number":  "F2",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "F3",
+                      "seat_number":  "F3",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "F4",
+                      "seat_number":  "F4",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "G1",
+                      "seat_number":  "G1",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "G2",
+                      "seat_number":  "G2",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "G3",
+                      "seat_number":  "G3",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "G4",
+                      "seat_number":  "G4",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "H1",
+                      "seat_number":  "H1",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "H2",
+                      "seat_number":  "H2",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "H3",
+                      "seat_number":  "H3",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "H4",
+                      "seat_number":  "H4",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "I1",
+                      "seat_number":  "I1",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "I2",
+                      "seat_number":  "I2",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "I3",
+                      "seat_number":  "I3",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "I4",
+                      "seat_number":  "I4",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "J1",
+                      "seat_number":  "J1",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "J2",
+                      "seat_number":  "J2",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "J3",
+                      "seat_number":  "J3",
+                      "is_booked":  false
+                  },
+                  {
+                      "id":  "J4",
+                      "seat_number":  "J4",
+                      "is_booked":  false
+                  }
+              ]
+}

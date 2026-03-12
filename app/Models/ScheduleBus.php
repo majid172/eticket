@@ -22,4 +22,11 @@ class ScheduleBus extends Model
     {
         return $this->belongsTo(Bus::class);
     }
+
+    public function bookedSeats()
+    {
+        return $this->hasManyThrough(BookingSeat::class, Booking::class)
+                    ->where('bookings.booking_status', '!=', 'cancelled')
+                    ->where('booking_seats.status', '!=', 'cancelled');
+    }
 }

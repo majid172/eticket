@@ -14,13 +14,13 @@ return new class extends Migration
         Schema::create('seats', function (Blueprint $table) {
             $table->id();
             $table->foreignId('bus_id')->constrained()->cascadeOnDelete();
-            $table->string('seat_number');
-            $table->enum('seat_type', ['Window', 'Aisle']);
+            $table->integer('capacity');
+            $table->enum('seat_type', ['Business', 'Economy']);
             $table->enum('status', ['available', 'unavailable'])->default('available');
             $table->timestamps();
 
-            // Ensure unique seat number per bus
-            $table->unique(['bus_id', 'seat_number']);
+            // Ensure one configuration per bus
+            $table->unique('bus_id');
         });
     }
 

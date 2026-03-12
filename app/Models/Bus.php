@@ -24,9 +24,9 @@ class Bus extends Model
         return $this->belongsTo(Company::class);
     }
 
-    public function seats()
+    public function seatConfig()
     {
-        return $this->hasMany(Seat::class);
+        return $this->hasOne(Seat::class);
     }
 
     public function schedules()

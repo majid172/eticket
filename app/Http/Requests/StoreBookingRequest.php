@@ -24,7 +24,7 @@ class StoreBookingRequest extends FormRequest
         return [
             'schedule_bus_id' => ['required', 'exists:schedule_buses,id'],
             'seat_ids' => ['required', 'array', 'min:1'],
-            'seat_ids.*' => ['integer', 'exists:seats,id'],
+            'seat_ids.*' => ['string'],
         ];
     }
 }

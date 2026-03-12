@@ -39,25 +39,23 @@ class BookingController extends Controller
             $scheduleBus = ScheduleBus::with('schedule')->lockForUpdate()->findOrFail($validated['schedule_bus_id']);
             
             // Re-verify seats are available
-            $requestedSeatIds = $validated['seat_ids']; // array of seat IDs
+            $requestedSeatNumbers = $validated['seat_ids']; // array of seat numbers
             
             $alreadyBooked = BookingSeat::whereHas('booking', function ($q) use ($scheduleBus) {
                 $q->where('schedule_bus_id', $scheduleBus->id)
                   ->where('booking_status', '!=', 'cancelled');
-            })->whereIn('seat_id', $requestedSeatIds)
+            })->whereIn('seat_number', $requestedSeatNumbers)
               ->where('status', '!=', 'cancelled')
               ->exists();
               
             if ($alreadyBooked) {
                 return response()->json(['message' => 'One or more of the selected seats are already booked.'], 400);
             }
-            
-            $seats = Seat::whereIn('id', $requestedSeatIds)->where('bus_id', $scheduleBus->bus_id)->get();
-            if ($seats->count() !== count($requestedSeatIds)) {
-                return response()->json(['message' => 'Invalid seats selected.'], 400);
-            }
 
-            $totalAmount = $scheduleBus->schedule->base_price * count($requestedSeatIds);
+            $seatConfig = Seat::where('bus_id', $scheduleBus->bus_id)->first();
+            $capacity = $seatConfig ? $seatConfig->capacity : 0;
+            
+            $totalAmount = $scheduleBus->schedule->base_price * count($requestedSeatNumbers);
 
             $booking = Booking::create([
                 'booking_reference' => strtoupper(Str::random(10)),
@@ -69,16 +67,14 @@ class BookingController extends Controller
                 'booked_at' => now(),
             ]);
 
-            foreach ($seats as $seat) {
+            foreach ($requestedSeatNumbers as $seatNumber) {
                 BookingSeat::create([
                     'booking_id' => $booking->id,
-                    'seat_id' => $seat->id,
+                    'seat_number' => $seatNumber,
                     'price' => $scheduleBus->schedule->base_price,
                     'status' => 'booked',
                 ]);
             }
-
-            $scheduleBus->decrement('available_seats', count($requestedSeatIds));
 
             return new BookingResource($booking->load(['scheduleBus.schedule.route', 'scheduleBus.bus.company']));
         });
@@ -115,16 +111,7 @@ class BookingController extends Controller
         DB::transaction(function () use ($booking) {
             $booking->update(['booking_status' => 'cancelled']);
             
-            $bookedSeatsCount = BookingSeat::where('booking_id', $booking->id)
-                ->where('status', '!=', 'cancelled')
-                ->count();
-                
             BookingSeat::where('booking_id', $booking->id)->update(['status' => 'cancelled']);
-            
-            $scheduleBus = ScheduleBus::lockForUpdate()->find($booking->schedule_bus_id);
-            if ($scheduleBus) {
-                $scheduleBus->increment('available_seats', $bookedSeatsCount);
-            }
         });
 
         return response()->json(['message' => 'Booking cancelled successfully.']);

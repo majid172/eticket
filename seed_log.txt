@@ -1,0 +1,29 @@
+PHP Warning:  PHP Startup: Unable to load dynamic library 'oci8_12c' (tried: E:\xampp\php\ext\oci8_12c (The specified module could not be found), E:\xampp\php\ext\php_oci8_12c.dll (The specified module could not be found)) in Unknown on line 0
+
+Warning: PHP Startup: Unable to load dynamic library 'oci8_12c' (tried: E:\xampp\php\ext\oci8_12c (The specified module could not be found), E:\xampp\php\ext\php_oci8_12c.dll (The specified module could not be found)) in Unknown on line 0
+
+   INFO  Seeding database.  
+
+  Database\Seeders\UserSeeder  RUNNING  
+
+   Illuminate\Database\UniqueConstraintViolationException 
+
+  SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'admin@busapp.com' for key 'users_email_unique' (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: eticket, SQL: insert into `users` (`name`, `email`, `password`, `role`, `updated_at`, `created_at`) values (Admin User, admin@busapp.com, $2y$12$WFEeYOs5gIZXJwW4AnHt4uSL2FptOct.XD6.eVMFlXwa5hPH7Jexa, admin, 2026-03-12 05:14:50, 2026-03-12 05:14:50))
+
+  at vendor\laravel\framework\src\Illuminate\Database\Connection.php:838
+    834▕             $exceptionType = $this->isUniqueConstraintError($e)
+    835▕                 ? UniqueConstraintViolationException::class
+    836▕                 : QueryException::class;
+    837▕ 
+  ➜ 838▕             throw new $exceptionType(
+    839▕                 $this->getNameWithReadWriteType(),
+    840▕                 $query,
+    841▕                 $this->prepareBindings($bindings),
+    842▕                 $e,
+
+  1   vendor\laravel\framework\src\Illuminate\Database\MySqlConnection.php:53
+      PDOException::("SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'admin@busapp.com' for key 'users_email_unique'")
+
+  2   vendor\laravel\framework\src\Illuminate\Database\MySqlConnection.php:53
+      PDOStatement::execute()
+

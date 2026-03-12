@@ -61,7 +61,8 @@ class ScheduleController extends Controller
      */
     public function index(Request $request)
     {
-        $query = ScheduleBus::with(['schedule.route', 'bus.company'])
+        $query = ScheduleBus::with(['schedule.route', 'bus.company', 'bus.seatConfig'])
+            ->withCount('bookedSeats')
             ->whereHas('schedule', function ($q) use ($request) {
                 $q->where('status', 'active');
                 
@@ -80,36 +81,58 @@ class ScheduleController extends Controller
                     $q->whereDate('travel_date', '>=', now()->toDateString());
                 }
             })
-            ->where('status', 'scheduled')
-            ->where('available_seats', '>', 0);
+            ->where('status', 'scheduled');
 
         $schedules = $query->paginate(10);
 
         return ScheduleBusResource::collection($schedules);
     }
 
-    /**
-     * View available seats for a specific schedule bus.
-     */
     public function seats(string $id)
     {
-        $scheduleBus = ScheduleBus::with(['schedule.route', 'bus.company'])->findOrFail($id);
+        $scheduleBus = ScheduleBus::with(['schedule.route', 'bus.company', 'bus.seatConfig'])
+            ->withCount('bookedSeats')
+            ->findOrFail($id);
         
-        $busSeats = Seat::where('bus_id', $scheduleBus->bus_id)->get();
+        $seatConfig = $scheduleBus->bus->seatConfig;
+        $capacity = $seatConfig ? $seatConfig->capacity : 0;
         
-        $bookedSeatIds = BookingSeat::whereHas('booking', function ($q) use ($scheduleBus) {
+        $bookedSeatNumbers = BookingSeat::whereHas('booking', function ($q) use ($scheduleBus) {
             $q->where('schedule_bus_id', $scheduleBus->id)
               ->where('booking_status', '!=', 'cancelled');
-        })->where('status', '!=', 'cancelled')->pluck('seat_id')->toArray();
+        })->where('status', '!=', 'cancelled')->pluck('seat_number')->toArray();
 
-        $seatsWithStatus = $busSeats->map(function ($seat) use ($bookedSeatIds) {
-            $seat->is_booked = in_array($seat->id, $bookedSeatIds);
-            return $seat;
-        });
+        $seats = [];
+        $rows = range('A', 'Z');
+        $count = 0;
+        $seatType = $seatConfig ? $seatConfig->seat_type : 'Economy';
+
+        foreach ($rows as $row) {
+            // Determine columns for this row based on seat type
+            $colsInRow = 4; // Default Economy
+            if ($seatType === 'Business') {
+                $colsInRow = ($row === 'I') ? 4 : 3;
+            }
+
+            for ($col = 1; $col <= $colsInRow; $col++) {
+                if ($count >= $capacity) {
+                    break 2;
+                }
+
+                $seatNumber = $row . $col;
+                $seats[] = [
+                    'id' => $seatNumber,
+                    'seat_number' => $seatNumber,
+                    'is_booked' => in_array($seatNumber, $bookedSeatNumbers),
+                ];
+                $count++;
+            }
+        }
 
         return response()->json([
             'schedule_bus' => new ScheduleBusResource($scheduleBus),
-            'seats' => $seatsWithStatus,
+            'seat_type' => $seatType,
+            'seats' => $seats,
         ]);
     }
 }

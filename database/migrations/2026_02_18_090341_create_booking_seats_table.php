@@ -17,9 +17,7 @@ return new class extends Migration
                   ->constrained('bookings')
                   ->cascadeOnDelete();
             
-            $table->foreignId('seat_id')
-                  ->constrained('seats')
-                  ->cascadeOnDelete();
+            $table->string('seat_number');
 
             $table->decimal('price', 10, 2);
             $table->enum('status', ['booked', 'cancelled'])->default('booked');
