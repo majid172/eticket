@@ -11,7 +11,21 @@ const router = useRouter()
 const bookingStore = useBookingStore()
 const searchStore = useSearchStore()
 
-const { searchParams, loadingTickets, tickets } = storeToRefs(searchStore)
+const { 
+  searchParams, 
+  loadingTickets, 
+  tickets, 
+  expandedTicketId, 
+  selectedSeats, 
+  seatLayout, 
+  loadingLayout, 
+  totalPrice,
+  seatType
+} = storeToRefs(searchStore)
+
+const toggleSeats = (ticketId) => searchStore.toggleSeats(ticketId)
+const selectSeat = (seat) => searchStore.selectSeat(seat)
+const isSelected = (seat) => searchStore.isSelected(seat)
 
 // Watch the route query to react to changes when the user searches again from the navbar/home
 watch(() => route.query, (newQuery) => {
@@ -30,64 +44,6 @@ onMounted(() => {
         date:       route.query.date       || '',   // empty = show all future schedules
         returnDate: route.query.returnDate || ''
     })
-})
-
-const expandedTicketId = ref(null)
-const selectedSeats = ref([])
-const seatLayout = ref([])
-const loadingLayout = ref(false)
-
-const toggleSeats = async (ticketId) => {
-  if (expandedTicketId.value === ticketId) {
-    expandedTicketId.value = null
-    selectedSeats.value = []
-    seatLayout.value = []
-  } else {
-    expandedTicketId.value = ticketId
-    selectedSeats.value = []
-    seatLayout.value = []
-    loadingLayout.value = true
-    
-    try {
-      const { data } = await api.get(`/schedules/${ticketId}/seats`)
-      const dbSeats = data.seats || [];
-      seatLayout.value = dbSeats.map(s => ({
-          db_id: s.id,
-          id: s.seat_number,
-          name: s.seat_number,
-          status: s.is_booked ? 'booked' : 'available'
-      }));
-    } catch(err) {
-      console.error("Failed to load seats", err);
-    } finally {
-      loadingLayout.value = false;
-    }
-  }
-}
-
-const selectSeat = (seat) => {
-  if (seat.status === 'booked') return
-  
-  const index = selectedSeats.value.findIndex(s => s.id === seat.id)
-  if (index === -1) {
-    if (selectedSeats.value.length >= 4) {
-      alert('You can select maximum 4 seats')
-      return
-    }
-    selectedSeats.value.push(seat)
-  } else {
-    selectedSeats.value.splice(index, 1)
-  }
-}
-
-const isSelected = (seat) => {
-  return selectedSeats.value.some(s => s.id === seat.id)
-}
-
-const totalPrice = computed(() => {
-    if (!expandedTicketId.value) return 0
-    const ticket = tickets.value.find(t => t.id === expandedTicketId.value)
-    return ticket ? ticket.price * selectedSeats.value.length : 0
 })
 
 const proceedToBooking = (ticket) => {
@@ -334,17 +290,30 @@ const proceedToBooking = (ticket) => {
                                <!-- Loading layout flag -->
                                <div v-if="loadingLayout" class="h-32 flex items-center justify-center">
                                   <svg class="w-6 h-6 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                               </div>
-
-                               <!-- Dynamic seats mapped by seatLayout structure -->
-                               <div v-else class="grid grid-cols-5 gap-3 max-w-xs mx-auto text-center">
+                               </div>                                <!-- Dynamic seats mapped by seatLayout structure -->
+                               <div v-else :class="[
+                                   'grid gap-3 max-w-xs mx-auto text-center',
+                                   seatType === 'Business' ? 'grid-cols-4' : 'grid-cols-5'
+                               ]">
                                    <!-- Driver Row -->
-                                   <div class="col-span-5 h-8"></div>
+                                   <div :class="seatType === 'Business' ? 'col-span-4 h-8' : 'col-span-5 h-8'"></div>
 
                                    <template v-for="(seat, index) in seatLayout" :key="seat.id">
-                                       <!-- Aisle spacing after every 2 seats -->
-                                       <div v-if="index > 0 && index % 2 === 0 && index % 4 !== 0" class="col-span-1"></div>
+                                       <!-- ECONOMY: Aisle spacing after every 2 seats (Col 3 is empty) -->
+                                       <div v-if="seatType === 'Economy' && index > 0 && index % 2 === 0 && index % 4 !== 0" class="col-span-1"></div>
                                        
+                                       <!-- BUSINESS: Aisle spacing for rows A-H (Col 2 is empty) -->
+                                       <!-- Business has 3 seats per row (except last row I which has 4). 
+                                            Rows A-H seats are indices 0-23. 
+                                            For row A: index 0 (A1), spacer, index 1 (A2), index 2 (A3).
+                                       -->
+                                       <div v-if="seatType === 'Business' && index < 24 && index % 3 === 1" class="col-span-1 order-none"></div>
+                                       <!-- Wait, index % 3 === 1 means it's the second seat of the row. 
+                                            If I want A1 [spacer] A2 A3:
+                                            Col 1: A1 (index 0)
+                                            Col 2: spacer (if index % 3 === 1, we insert spacer BEFORE index 1)
+                                       -->
+
                                        <button 
                                            @click="selectSeat(seat)"
                                            :disabled="seat.status === 'booked'"

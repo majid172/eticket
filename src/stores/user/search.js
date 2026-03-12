@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import api from '@/services/api'
 
 export const useSearchStore = defineStore('search', () => {
@@ -80,6 +80,7 @@ export const useSearchStore = defineStore('search', () => {
                     price: sch.base_price || 0,
                     oldPrice: null,
                     seatsAvailable: sb.available_seats || 0,
+                    seatType: sb.seat_type || 'Economy',
                     isAc: bs.bus_type === 'AC',
                     discount: null
                 }
@@ -91,12 +92,81 @@ export const useSearchStore = defineStore('search', () => {
         }
     }
 
+    const expandedTicketId = ref(null)
+    const selectedSeats = ref([])
+    const seatLayout = ref([])
+    const loadingLayout = ref(false)
+    const seatType = ref('Economy')
+
+    const toggleSeats = async (ticketId) => {
+        if (expandedTicketId.value === ticketId) {
+            expandedTicketId.value = null
+            selectedSeats.value = []
+            seatLayout.value = []
+            return
+        }
+
+        expandedTicketId.value = ticketId
+        selectedSeats.value = []
+        seatLayout.value = []
+        loadingLayout.value = true
+
+        try {
+            const { data } = await api.get(`/schedules/${ticketId}/seats`)
+            const dbSeats = data.seats || []
+            seatType.value = data.seat_type || 'Economy'
+            seatLayout.value = dbSeats.map(s => ({
+                id: s.seat_number,
+                name: s.seat_number,
+                status: s.is_booked ? 'booked' : 'available'
+            }))
+        } catch (err) {
+            console.error("Failed to load seats", err)
+        } finally {
+            loadingLayout.value = false
+        }
+    }
+
+    const selectSeat = (seat) => {
+        if (seat.status === 'booked') return
+
+        const index = selectedSeats.value.findIndex(s => s.id === seat.id)
+        if (index === -1) {
+            if (selectedSeats.value.length >= 4) {
+                alert('You can select maximum 4 seats')
+                return
+            }
+            selectedSeats.value.push(seat)
+        } else {
+            selectedSeats.value.splice(index, 1)
+        }
+    }
+
+    const isSelected = (seat) => {
+        return selectedSeats.value.some(s => s.id === seat.id)
+    }
+
+    const totalPrice = computed(() => {
+        if (!expandedTicketId.value) return 0
+        const ticket = tickets.value.find(t => t.id === expandedTicketId.value)
+        return ticket ? ticket.price * selectedSeats.value.length : 0
+    })
+
     return {
         searchParams,
         loadingTickets,
         tickets,
         cities,
+        expandedTicketId,
+        selectedSeats,
+        seatLayout,
+        loadingLayout,
+        seatType,
+        totalPrice,
         fetchSchedules,
-        fetchCities
+        fetchCities,
+        toggleSeats,
+        selectSeat,
+        isSelected
     }
 })
