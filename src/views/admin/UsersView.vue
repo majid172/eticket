@@ -104,7 +104,7 @@ const getRoleColor = (role) => {
         case 'operator':
         case 'company owner': return 'text-purple-600 bg-purple-50 px-2 py-0.5 rounded text-xs font-semibold';
         case 'admin': return 'text-blue-600 bg-blue-50 px-2 py-0.5 rounded text-xs font-semibold';
-        case 'passenger': return 'text-slate-600 bg-slate-50 px-2 py-0.5 rounded text-xs font-semibold';
+        case 'user': return 'text-slate-600 bg-slate-50 px-2 py-0.5 rounded text-xs font-semibold';
         default: return 'text-gray-600 bg-gray-50 px-2 py-0.5 rounded text-xs font-semibold';
     }
 }

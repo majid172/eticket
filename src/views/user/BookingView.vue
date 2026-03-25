@@ -36,7 +36,7 @@ const confirmBooking = async () => {
   try {
     const payload = {
       schedule_bus_id: bookingStore.scheduleBusId,
-      seat_ids: bookingStore.selectedSeats.map(s => s.db_id)
+      seat_ids: bookingStore.selectedSeats.map(s => s.id)
     };
 
     const { data } = await api.post('/passenger/bookings', payload);

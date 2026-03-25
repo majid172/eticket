@@ -35,7 +35,7 @@ onMounted(async () => {
                     name: u.name || '',
                     email: u.email || '',
                     phone: u.phone || '',
-                    role: u.role || 'passenger',
+                    role: u.role || 'user',
                     status: u.status || 'active'
                 }
             }
@@ -152,7 +152,7 @@ const handleSubmit = async () => {
                                     v-model="form.role"
                                     class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:bg-white focus:border-black focus:ring-1 focus:ring-black transition-all appearance-none cursor-pointer"
                                 >
-                                    <option value="passenger">Passenger</option>
+                                    <option value="user">Passenger</option>
                                     <option value="operator">Operator (Company Owner)</option>
                                     <option value="admin">Administrator</option>
                                 </select>
