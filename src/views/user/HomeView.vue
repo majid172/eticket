@@ -62,62 +62,62 @@ const busOperators = [
 <template>
   <div class="home-view">
     <!-- Hero Section -->
-    <section class="relative h-[600px] flex items-center justify-center bg-gray-900 overflow-hidden">
+    <section class="relative min-h-[500px] md:h-[600px] flex items-center justify-center bg-gray-900 overflow-hidden py-12 md:py-0">
         <!-- Background Image with Overlay -->
         <div class="absolute inset-0 z-0">
             <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" alt="Luxury Bus" class="w-full h-full object-cover opacity-60">
             <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-gray-900/50"></div>
         </div>
 
-        <div class="relative z-10 text-center px-4 max-w-4xl mx-auto">
-            <span class="inline-block py-1 px-3 rounded-full bg-indigo-600/30 border border-indigo-500 text-indigo-300 text-sm font-semibold mb-6 backdrop-blur-sm">Travel in Comfort</span>
-            <h1 class="text-4xl md:text-6xl font-extrabold text-white mb-6 tracking-tight leading-tight">
+        <div class="relative z-10 text-center px-4 max-w-4xl mx-auto w-full">
+            <span class="inline-block py-1 px-3 rounded-full bg-indigo-600/30 border border-indigo-500 text-indigo-300 text-[10px] md:text-sm font-semibold mb-4 md:mb-6 backdrop-blur-sm">Travel in Comfort</span>
+            <h1 class="text-3xl md:text-6xl font-extrabold text-white mb-6 md:mb-8 tracking-tight leading-tight">
                 Discover & Book <br>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Seamless Bus Journeys</span>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Seamless Journeys</span>
             </h1>
-            <p class="text-lg md:text-xl text-gray-200 mb-10 max-w-2xl mx-auto">
+            <p class="hidden md:block text-lg md:text-xl text-gray-200 mb-10 max-w-2xl mx-auto">
                 Secure your tickets for the best routes and destinations. Enjoy safe, comfortable, and affordable travel.
             </p>
             
             <!-- Search Bar -->
-            <div class="bg-white/10 backdrop-blur-md p-2 rounded-3xl border border-white/20 flex flex-col md:flex-row max-w-4xl mx-auto shadow-2xl">
+            <div class="bg-white/10 backdrop-blur-md p-3 md:p-2 rounded-2xl md:rounded-3xl border border-white/20 flex flex-col md:flex-row max-w-4xl mx-auto shadow-2xl space-y-3 md:space-y-0 text-left">
                 <!-- From Field -->
-                <div class="flex-grow px-4 py-3 border-b md:border-b-0 md:border-r border-gray-600 relative">
-                    <label class="block text-xs font-bold text-gray-300 uppercase tracking-wide ml-8 mb-1">From</label>
+                <div class="flex-grow px-3 md:px-4 py-2 md:py-3 border-b md:border-b-0 md:border-r border-white/10 relative">
+                    <label class="block text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wide ml-7 md:ml-8 mb-1">From</label>
                     <div class="relative flex items-center">
-                        <svg class="w-5 h-5 text-indigo-400 absolute left-0 ml-1 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        <select v-model="searchParams.from" class="bg-transparent text-white focus:outline-none w-full pl-8 pr-8 font-medium appearance-none cursor-pointer">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-indigo-400 absolute left-0 ml-1 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <select v-model="searchParams.from" class="bg-transparent text-white focus:outline-none w-full pl-7 md:pl-8 pr-6 md:pr-8 font-medium text-sm md:text-base appearance-none cursor-pointer">
                             <option value="" class="bg-gray-800 text-gray-400">Select Departure</option>
-                            <option v-for="city in cities" :key="city.id" :value="city.name" class="bg-gray-800 text-white hover:bg-gray-700 py-2">{{ city.name }}</option>
+                            <option v-for="city in cities" :key="city.id" :value="city.name" class="bg-gray-800 text-white">{{ city.name }}</option>
                         </select>
-                        <svg class="w-4 h-4 text-gray-400 absolute right-0 mr-1 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        <svg class="w-3 h-3 md:w-4 md:h-4 text-gray-400 absolute right-0 mr-1 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </div>
                 </div>
 
                 <!-- To Field -->
-                <div class="flex-grow px-4 py-3 border-b md:border-b-0 md:border-r border-gray-600 relative">
-                    <label class="block text-xs font-bold text-gray-300 uppercase tracking-wide ml-8 mb-1">To</label>
+                <div class="flex-grow px-3 md:px-4 py-2 md:py-3 border-b md:border-b-0 md:border-r border-white/10 relative">
+                    <label class="block text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wide ml-7 md:ml-8 mb-1">To</label>
                     <div class="relative flex items-center">
-                        <svg class="w-5 h-5 text-purple-400 absolute left-0 ml-1 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                         <select v-model="searchParams.to" class="bg-transparent text-white focus:outline-none w-full pl-8 pr-8 font-medium appearance-none cursor-pointer">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-purple-400 absolute left-0 ml-1 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                         <select v-model="searchParams.to" class="bg-transparent text-white focus:outline-none w-full pl-7 md:pl-8 pr-6 md:pr-8 font-medium text-sm md:text-base appearance-none cursor-pointer">
                             <option value="" class="bg-gray-800 text-gray-400">Select Destination</option>
-                            <option v-for="city in cities" :key="city.id" :value="city.name" class="bg-gray-800 text-white hover:bg-gray-700 py-2">{{ city.name }}</option>
+                            <option v-for="city in cities" :key="city.id" :value="city.name" class="bg-gray-800 text-white">{{ city.name }}</option>
                         </select>
-                        <svg class="w-4 h-4 text-gray-400 absolute right-0 mr-1 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        <svg class="w-3 h-3 md:w-4 md:h-4 text-gray-400 absolute right-0 mr-1 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </div>
                 </div>
 
                 <!-- Date Field -->
-                <div class="px-4 py-3 border-b md:border-b-0 md:border-r border-gray-600 md:w-48 relative">
-                    <label class="block text-xs font-bold text-gray-300 uppercase tracking-wide ml-8 mb-1">Journey Date</label>
+                <div class="px-3 md:px-4 py-2 md:py-3 border-b md:border-b-0 md:border-r border-white/10 md:w-48 relative">
+                    <label class="block text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wide ml-7 md:ml-8 mb-1">Date</label>
                     <div class="flex items-center">
-                        <svg class="w-5 h-5 text-pink-400 mr-3 absolute pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        <input v-model="searchParams.date" type="date" class="bg-transparent text-white placeholder-gray-400 focus:outline-none w-full pl-8 font-medium [color-scheme:dark] cursor-pointer">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 text-pink-400 mr-3 absolute pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <input v-model="searchParams.date" type="date" class="bg-transparent text-white placeholder-gray-400 focus:outline-none w-full pl-7 md:pl-8 font-medium text-sm [color-scheme:dark] cursor-pointer">
                     </div>
                 </div>
 
-                <div class="p-2 flex items-center">
-                    <button @click="handleSearch" class="w-full md:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-2xl px-8 py-4 font-bold transition-all transform hover:scale-105 shadow-lg flex items-center justify-center">
+                <div class="p-1 md:p-2 flex items-center">
+                    <button @click="handleSearch" class="w-full md:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl md:rounded-2xl px-6 md:px-8 py-3 md:py-4 font-bold transition-all transform hover:scale-[1.02] shadow-lg flex items-center justify-center text-sm md:text-base">
                         Search
                     </button>
                 </div>

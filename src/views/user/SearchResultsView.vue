@@ -90,6 +90,16 @@ const sortByPrice = (order) => {
     sortOrder.value = order
 }
 
+const showFilters = ref(false)
+const isMobile = ref(false)
+
+if (typeof window !== 'undefined') {
+  isMobile.value = window.innerWidth < 1024
+  window.addEventListener('resize', () => {
+    isMobile.value = window.innerWidth < 1024
+  })
+}
+
 const resetFilters = () => {
     selectedOperators.value = []
     selectedBusTypes.value = []
@@ -100,61 +110,77 @@ const resetFilters = () => {
 <template>
   <div class="search-results-view bg-gray-50 min-h-screen pb-12 font-sans">
     <!-- Top Search Bar Summary -->
-    <div class="bg-white shadow-sm border-b border-gray-200 sticky top-16 z-30 backdrop-blur-md bg-white/90">
-      <div class="container mx-auto px-4 py-4">
+    <div class="bg-white shadow-sm border-b border-gray-200 sticky top-14 lg:top-16 z-30 backdrop-blur-md bg-white/90 transition-all duration-300">
+      <div class="container mx-auto px-4 py-3 md:py-4">
         <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-          <div class="flex items-center space-x-4 flex-grow w-full md:w-auto bg-gray-50 p-2 rounded-xl border border-gray-100">
-             <div class="flex items-center text-gray-700 font-medium">
-                <svg class="w-5 h-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+          <div class="flex items-center space-x-2 md:space-x-4 flex-grow w-full md:w-auto bg-gray-50 p-2 rounded-xl border border-gray-100">
+             <div class="flex items-center text-gray-700 font-medium text-sm md:text-base truncate">
+                <svg class="w-4 h-4 md:w-5 md:h-5 text-indigo-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
                 {{ searchParams.from }} 
              </div>
-             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
-             <div class="flex items-center text-gray-700 font-medium">
-                <svg class="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+             <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+             <div class="flex items-center text-gray-700 font-medium text-sm md:text-base truncate">
+                <svg class="w-4 h-4 md:w-5 md:h-5 text-purple-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
                 {{ searchParams.to }}
              </div>
           </div>
           
-          <div class="flex space-x-2">
-            <div class="bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 shadow-sm">{{ searchParams.date }}</div>
-            <div v-if="searchParams.returnDate" class="bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 shadow-sm">{{ searchParams.returnDate }}</div>
-          </div>
+          <div class="flex items-center justify-between w-full md:w-auto gap-2">
+            <div class="flex space-x-1">
+              <div class="bg-indigo-50 border border-indigo-100 rounded-lg px-2 px-3 py-1.5 text-xs md:text-sm font-semibold text-indigo-700 shadow-sm">{{ searchParams.date }}</div>
+            </div>
 
-          <button class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-2.5 rounded-xl font-bold uppercase text-sm shadow-md hover:shadow-lg transition-all transform hover:scale-105">
-            Modify Search
-          </button>
+            <div class="flex gap-2">
+                <button @click="showFilters = !showFilters" class="lg:hidden bg-gray-100 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                    Filters
+                </button>
+                <button class="bg-indigo-600 text-white px-3 md:px-6 py-1.5 rounded-lg font-bold text-xs shadow-sm whitespace-nowrap">
+                   Modify
+                </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Process Steps -->
-    <div class="bg-gray-900 text-white py-4 text-sm shadow-md">
-      <div class="container mx-auto px-4 flex items-center justify-center space-x-4 md:space-x-8">
-          <div class="flex items-center space-x-2 text-indigo-300">
-             <div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs">1</div>
+    <div class="bg-gray-900 text-white py-3 text-[10px] md:text-sm shadow-md">
+      <div class="container mx-auto px-4 flex items-center justify-center space-x-2 md:space-x-8">
+          <div class="flex items-center space-x-1 md:space-x-2 text-indigo-300">
+             <div class="w-4 h-4 md:w-6 md:h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-[8px] md:text-xs text-xs">1</div>
              <span class="font-bold">Select Ticket</span>
           </div>
-          <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-          <div class="flex items-center space-x-2 text-gray-400">
-             <div class="w-6 h-6 rounded-full bg-gray-700 text-gray-400 flex items-center justify-center font-bold text-xs">2</div>
-             <span class="font-medium">Passenger Details</span>
+          <svg class="w-3 h-3 md:w-4 md:h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          <div class="flex items-center space-x-1 md:space-x-2 text-gray-400">
+             <div class="w-4 h-4 md:w-6 md:h-6 rounded-full bg-gray-700 text-gray-400 flex items-center justify-center font-bold text-[8px] md:text-xs">2</div>
+             <span class="font-medium">Details</span>
           </div>
-          <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-          <div class="flex items-center space-x-2 text-gray-400">
-             <div class="w-6 h-6 rounded-full bg-gray-700 text-gray-400 flex items-center justify-center font-bold text-xs">3</div>
+          <svg class="w-3 h-3 md:w-4 md:h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          <div class="flex items-center space-x-1 md:space-x-2 text-gray-400">
+             <div class="w-4 h-4 md:w-6 md:h-6 rounded-full bg-gray-700 text-gray-400 flex items-center justify-center font-bold text-[8px] md:text-xs">3</div>
              <span class="font-medium">Payment</span>
           </div>
       </div>
     </div>
 
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto px-4 py-6 md:py-8">
       <div class="flex flex-col lg:flex-row gap-8">
         <!-- Sidebar Filters -->
-        <div class="w-full lg:w-1/4 space-y-6 sticky top-40 h-fit">
-           <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div :class="[
+            'w-full lg:w-1/4 space-y-6 lg:sticky lg:top-40 h-fit transition-all duration-300',
+            isMobile && !showFilters ? 'hidden' : 'block',
+            isMobile ? 'fixed inset-0 z-[60] bg-white p-6 overflow-y-auto' : ''
+        ]">
+           <div class="bg-white lg:p-6 rounded-2xl lg:shadow-sm lg:border lg:border-gray-100">
                <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
                   <h3 class="font-bold text-lg text-gray-900">Filters</h3>
-                  <button @click="resetFilters" class="text-indigo-600 text-xs font-bold uppercase hover:text-indigo-800 transition-colors">Reset All</button>
+                  <div class="flex items-center gap-4">
+                    <button @click="resetFilters" class="text-indigo-600 text-xs font-bold uppercase hover:text-indigo-800 transition-colors">Reset</button>
+                    <button v-if="isMobile" @click="showFilters = false" class="p-2 -mr-2 text-gray-400">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                  </div>
                </div>
 
                <!-- Filter Groups -->

@@ -1,16 +1,38 @@
 <script setup>
-import { RouterView, RouterLink } from 'vue-router'
-import { ref } from 'vue'
+import { RouterView, RouterLink, useRoute } from 'vue-router'
+import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
-const isMenuOpen = ref(false)
 const auth = useAuthStore()
+const route = useRoute()
+
+const isMobile = ref(false)
+
+// Check for mobile on mount and resize
+if (typeof window !== 'undefined') {
+  isMobile.value = window.innerWidth < 768
+  window.addEventListener('resize', () => {
+    isMobile.value = window.innerWidth < 768
+  })
+}
+
+const pageTitle = computed(() => {
+  switch (route.name) {
+    case 'home': return 'E-Ticket'
+    case 'search': return 'Search Results'
+    case 'booking': return 'My Bookings'
+    case 'user-settings': return 'Settings'
+    case 'about': return 'About Us'
+    case 'contact': return 'Contact'
+    default: return 'E-Ticket'
+  }
+})
 </script>
 
 <template>
-  <div class="user-layout flex flex-col min-h-screen bg-gray-50 font-sans">
-    <!-- Navbar -->
-    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
+  <div class="user-layout flex flex-col min-h-screen bg-gray-50 font-sans pb-16 md:pb-0">
+    <!-- Navbar (Desktop) -->
+    <header class="hidden md:block bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
       <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <!-- Logo -->
@@ -21,97 +43,60 @@ const auth = useAuthStore()
           </div>
 
           <!-- Desktop Navigation -->
-          <nav class="hidden md:flex space-x-8">
+          <nav class="flex space-x-8">
             <RouterLink to="/" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Home</RouterLink>
-           
             <RouterLink to="/about" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">About</RouterLink>
             <RouterLink to="/contact" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Contact</RouterLink>
             <RouterLink to="/settings" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Settings</RouterLink>
           </nav>
 
           <!-- Action Buttons -->
-          <div class="hidden md:flex items-center space-x-4">
-
-            <!-- Guest: show Sign In / Sign Up -->
+          <div class="flex items-center space-x-4">
             <template v-if="!auth.isAuthenticated">
               <RouterLink to="/login" class="text-gray-700 hover:text-indigo-600 font-medium text-sm">Sign In</RouterLink>
               <RouterLink to="/register" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors shadow-md hover:shadow-lg">
                 Sign Up
               </RouterLink>
             </template>
-
-            <!-- Logged in -->
             <template v-else>
-              <!-- Admin / Operator: show Dashboard link -->
-              <RouterLink
-                v-if="auth.isAdmin"
-                to="/admin/dashboard"
-                class="text-indigo-600 hover:text-indigo-800 font-medium text-sm flex items-center gap-1"
-              >
+              <RouterLink v-if="auth.isAdmin" to="/admin/dashboard" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm flex items-center gap-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                 Dashboard
               </RouterLink>
-              <RouterLink
-                v-else-if="auth.isOperator"
-                to="/operator/dashboard"
-                class="text-indigo-600 hover:text-indigo-800 font-medium text-sm flex items-center gap-1"
-              >
+              <RouterLink v-else-if="auth.isOperator" to="/operator/dashboard" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm flex items-center gap-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                 Dashboard
               </RouterLink>
-
-              <!-- User greeting -->
               <span class="text-sm text-gray-600 font-medium">Hi, {{ auth.user?.name?.split(' ')[0] }}</span>
-
-              <!-- Logout -->
-              <button
-                @click="auth.logout()"
-                class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-full text-sm font-medium transition-colors border border-red-200"
-              >
+              <button @click="auth.logout()" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-full text-sm font-medium transition-colors border border-red-200">
                 Logout
               </button>
             </template>
-
-          </div>
-
-          <!-- Mobile menu button -->
-          <div class="md:hidden flex items-center">
-            <button @click="isMenuOpen = !isMenuOpen" class="text-gray-700 hover:text-indigo-600 focus:outline-none">
-              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path v-if="!isMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
           </div>
         </div>
       </div>
+    </header>
 
-      <!-- Mobile Menu -->
-      <div v-if="isMenuOpen" class="md:hidden bg-white border-b border-gray-100">
-        <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          <RouterLink to="/" class="block text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">Home</RouterLink>
-          <RouterLink to="/events" class="block text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">Events</RouterLink>
-          <RouterLink to="/about" class="block text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">About</RouterLink>
-          <RouterLink to="/contact" class="block text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">Contact</RouterLink>
-          <RouterLink to="/settings" class="block text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">Settings</RouterLink>
-          <!-- Guest -->
-          <template v-if="!auth.isAuthenticated">
-            <div class="mt-4 pt-4 border-t border-gray-100 flex flex-col space-y-2">
-              <RouterLink to="/login" class="w-full text-left text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-base font-medium">Sign In</RouterLink>
-              <RouterLink to="/register" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-md text-base font-medium text-center">Sign Up</RouterLink>
-            </div>
-          </template>
-
-          <!-- Logged in -->
-          <template v-else>
-            <div class="mt-4 pt-4 border-t border-gray-100 flex flex-col space-y-2">
-              <span class="px-3 py-2 text-sm font-semibold text-gray-700">Hi, {{ auth.user?.name }}</span>
-              <RouterLink v-if="auth.isAdmin" to="/admin/dashboard" class="block text-indigo-600 hover:text-indigo-800 px-3 py-2 rounded-md text-base font-medium">Dashboard</RouterLink>
-              <RouterLink v-else-if="auth.isOperator" to="/operator/dashboard" class="block text-indigo-600 hover:text-indigo-800 px-3 py-2 rounded-md text-base font-medium">Dashboard</RouterLink>
-              <button @click="auth.logout()" class="w-full text-left text-red-600 hover:text-red-800 px-3 py-2 rounded-md text-base font-medium">Logout</button>
-            </div>
-          </template>
-        </div>
+    <!-- Mobile Header (App Tool Bar) -->
+    <header class="md:hidden bg-white/90 backdrop-blur-xl sticky top-0 z-50 border-b border-gray-100 h-14 flex items-center px-4 justify-between">
+      <div class="flex items-center gap-3">
+        <button v-if="route.path !== '/'" @click="$router.back()" class="p-2 -ml-2 text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        </button>
+        <h1 class="text-lg font-bold text-gray-900">{{ pageTitle }}</h1>
+      </div>
+      <div class="flex items-center gap-1">
+        <button class="p-2 text-gray-600">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+        </button>
+        <template v-if="auth.isAuthenticated">
+          <RouterLink to="/settings" class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
+            {{ auth.user?.name?.[0]?.toUpperCase() }}
+          </RouterLink>
+        </template>
+        <template v-else>
+          <RouterLink to="/login" class="text-sm font-medium text-indigo-600">Login</RouterLink>
+        </template>
       </div>
     </header>
 
@@ -120,8 +105,31 @@ const auth = useAuthStore()
       <RouterView />
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-white pt-12 pb-8">
+    <!-- Bottom Navigation (Mobile Only) -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 flex justify-around items-center h-16 z-50 px-2 pb-safe">
+      <RouterLink to="/" class="flex flex-col items-center justify-center w-full h-full text-gray-400" active-class="text-indigo-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+        <span class="text-[10px] mt-1 font-medium">Home</span>
+      </RouterLink>
+      
+      <RouterLink to="/search" class="flex flex-col items-center justify-center w-full h-full text-gray-400" active-class="text-indigo-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <span class="text-[10px] mt-1 font-medium">Search</span>
+      </RouterLink>
+
+      <RouterLink to="/booking" class="flex flex-col items-center justify-center w-full h-full text-gray-400" active-class="text-indigo-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+        <span class="text-[10px] mt-1 font-medium">Bookings</span>
+      </RouterLink>
+
+      <RouterLink to="/settings" class="flex flex-col items-center justify-center w-full h-full text-gray-400" active-class="text-indigo-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+        <span class="text-[10px] mt-1 font-medium">Account</span>
+      </RouterLink>
+    </nav>
+
+    <!-- Footer (Desktop Only) -->
+    <footer class="hidden md:block bg-gray-900 text-white pt-12 pb-8">
       <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div class="col-span-1 md:col-span-1">
@@ -158,7 +166,6 @@ const auth = useAuthStore()
         <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p class="text-gray-500 text-sm">&copy; 2026 E-Ticket System. All rights reserved.</p>
           <div class="flex space-x-4 mt-4 md:mt-0">
-            <!-- Social Icons (Placeholders) -->
             <a href="#" class="text-gray-400 hover:text-white"><span class="sr-only">Facebook</span>FB</a>
             <a href="#" class="text-gray-400 hover:text-white"><span class="sr-only">Twitter</span>TW</a>
             <a href="#" class="text-gray-400 hover:text-white"><span class="sr-only">Instagram</span>IG</a>
@@ -168,3 +175,15 @@ const auth = useAuthStore()
     </footer>
   </div>
 </template>
+
+<style scoped>
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Smooth transition for active nav items */
+.router-link-active svg {
+  transform: translateY(-2px);
+  transition: transform 0.2s ease-out;
+}
+</style>
