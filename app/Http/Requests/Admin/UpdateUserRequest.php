@@ -33,7 +33,7 @@ class UpdateUserRequest extends FormRequest
                 Rule::unique('users', 'email')->ignore($userId),
             ],
             'phone' => ['nullable', 'string', 'max:50'],
-            'role' => ['sometimes', 'string', Rule::in(['passenger', 'operator', 'admin'])],
+            'role' => ['sometimes', 'string', Rule::in(['user', 'operator', 'admin'])],
             'status' => ['sometimes', 'string', Rule::in(['active', 'blocked'])],
         ];
     }

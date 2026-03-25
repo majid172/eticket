@@ -48,7 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ─── Passenger (User) Routes ──────────────────────────────────────────────
     // Passengers can ONLY manage their own bookings.
     // They have NO access to operator or admin routes.
-    Route::middleware('role:passenger')->prefix('passenger')->group(function () {
+    Route::middleware('role:user')->prefix('passenger')->group(function () {
 
         // Booking management (own bookings only)
         Route::get('/bookings',               [\App\Http\Controllers\Api\V1\Passenger\BookingController::class, 'index']);

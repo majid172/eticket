@@ -45,7 +45,7 @@ class UserRepository implements UserRepositoryInterface
             'email'    => $data['email'],
             'password' => Hash::make($data['password']),
             'phone'    => $data['phone'] ?? null,
-            'role'     => $data['role'] ?? 'passenger',
+            'role'     => $data['role'] ?? 'user',
             'status'   => 'active',
         ]);
     }
