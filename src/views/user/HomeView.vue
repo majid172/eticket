@@ -169,8 +169,8 @@ const busOperators = [
             </div>
 
             <!-- Loading Skeleton -->
-            <div v-if="routesLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div v-for="n in 4" :key="n" class="bg-white rounded-2xl overflow-hidden shadow-sm animate-pulse">
+            <div v-if="routesLoading" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
+                <div v-for="n in 4" :key="n" class="bg-white rounded-xl md:rounded-2xl overflow-hidden shadow-sm animate-pulse">
                     <div class="h-48 bg-gray-200"></div>
                     <div class="p-6 space-y-3">
                         <div class="h-3 bg-gray-200 rounded w-1/2"></div>
@@ -193,15 +193,15 @@ const busOperators = [
             </div>
 
             <!-- Route Cards -->
-            <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div v-else class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
                 <div
                     v-for="(route, index) in popularRoutes"
                     :key="route.id"
-                    class="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+                    class="group bg-white rounded-xl md:rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col"
                     @click="bookRoute(route)"
                 >
                     <!-- Card Image -->
-                    <div class="relative h-48 overflow-hidden">
+                    <div class="relative h-32 md:h-48 overflow-hidden">
                         <img
                             :src="routeImages[index % routeImages.length]"
                             :alt="route.source_city + ' to ' + route.destination_city"
@@ -218,41 +218,41 @@ const busOperators = [
                     </div>
 
                     <!-- Card Body -->
-                    <div class="p-6">
+                    <div class="p-3 md:p-6 flex-grow flex flex-col">
                         <!-- Schedules count -->
-                        <div class="flex items-center text-gray-500 text-xs font-medium mb-3">
-                            <svg class="w-4 h-4 mr-1 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            {{ route.schedules_count }} schedule{{ route.schedules_count !== 1 ? 's' : '' }} available
+                        <div class="flex items-center text-gray-500 text-[10px] md:text-xs font-medium mb-1 md:mb-3">
+                            <svg class="w-3 h-3 md:w-4 md:h-4 mr-1 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            {{ route.schedules_count }} schedule{{ route.schedules_count !== 1 ? 's' : '' }}
                         </div>
 
                         <!-- Route title -->
-                        <h3 class="text-lg font-bold text-gray-900 mb-2 leading-tight group-hover:text-indigo-600 transition-colors">
+                        <h3 class="text-xs md:text-lg font-bold text-gray-900 mb-1 md:mb-2 leading-tight group-hover:text-indigo-600 transition-colors flex-grow">
                             {{ route.source_city }}
                             <span class="inline-flex items-center mx-1">
-                                <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                                <svg class="w-3 h-3 md:w-4 md:h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                             </span>
                             {{ route.destination_city }}
                         </h3>
 
-                        <!-- Distance label -->
-                        <div class="flex items-center text-gray-500 text-sm">
+                        <!-- Distance label (Hidden on very small screens to save space) -->
+                        <div class="hidden md:flex items-center text-gray-500 text-sm">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
-                            {{ route.distance_km }} km distance
+                            {{ route.distance_km }} km
                         </div>
 
                         <!-- Price & CTA -->
-                        <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                        <div class="flex items-center justify-between mt-2 md:mt-4 pt-2 md:pt-4 border-t border-gray-100">
                             <div>
-                                <span class="text-xs text-gray-400">Starting from</span>
-                                <p class="text-xl font-bold text-indigo-600">
+                                <span class="text-[8px] md:text-xs text-gray-400">From</span>
+                                <p class="text-sm md:text-xl font-bold text-indigo-600">
                                     {{ route.min_price ? '৳' + Number(route.min_price).toLocaleString() : 'N/A' }}
                                 </p>
                             </div>
                             <button
                                 @click.stop="bookRoute(route)"
-                                class="bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all duration-200"
+                                class="bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white text-[10px] md:text-sm font-semibold px-2 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl transition-all duration-200"
                             >
-                                Book Now
+                                Book
                             </button>
                         </div>
                     </div>
