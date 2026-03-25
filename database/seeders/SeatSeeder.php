@@ -12,7 +12,7 @@ class SeatSeeder extends Seeder
         $seats = [
             [
                 'bus_id'      => 1,
-                'capacity'    => 28,
+                'capacity'    => 40,
                 'seat_type'   => 'Business',
                 'status'      => 'available',
                 'created_at'  => now(),
@@ -28,7 +28,7 @@ class SeatSeeder extends Seeder
             ],
             [
                 'bus_id'      => 3,
-                'capacity'    => 28,
+                'capacity'    => 30,
                 'seat_type'   => 'Business',
                 'status'      => 'available',
                 'created_at'  => now(),

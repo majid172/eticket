@@ -31,6 +31,7 @@ class BusController extends Controller
         $company = $this->operatorCompany($request);
 
         $buses = $company->buses()
+            ->with('seatConfig')
             ->latest()
             ->get();
 
@@ -51,13 +52,19 @@ class BusController extends Controller
             'bus_name'    => $request->bus_name,
             'bus_number'  => $request->bus_number,
             'bus_type'    => $request->bus_type,
-            'total_seats' => $request->total_seats,
             'status'      => $request->input('status', 'active'),
+        ]);
+
+        // Create initial seat configuration (Seat record)
+        $bus->seatConfig()->create([
+            'capacity'  => $request->total_seats,
+            'seat_type' => $request->bus_type === 'Sleeper' ? 'Business' : 'Economy', // Logic or default
+            'status'    => 'available',
         ]);
 
         return response()->json([
             'message' => 'Bus added successfully.',
-            'data'    => $bus,
+            'data'    => $bus->load('seatConfig'),
         ], 201);
     }
 
@@ -69,6 +76,7 @@ class BusController extends Controller
     {
         $bus = $this->operatorCompany($request)
             ->buses()
+            ->with('seatConfig')
             ->findOrFail($id);
 
         return response()->json(['data' => $bus]);
@@ -88,13 +96,21 @@ class BusController extends Controller
             'bus_name'    => $request->bus_name,
             'bus_number'  => $request->bus_number,
             'bus_type'    => $request->bus_type,
-            'total_seats' => $request->total_seats,
             'status'      => $request->input('status', $bus->status),
         ]);
 
+        // Update seat configuration
+        $bus->seatConfig()->updateOrCreate(
+            ['bus_id' => $bus->id],
+            [
+                'capacity' => $request->total_seats,
+                // Update seat type if needed, or keep existing
+            ]
+        );
+
         return response()->json([
             'message' => 'Bus updated successfully.',
-            'data'    => $bus->fresh(),
+            'data'    => $bus->fresh('seatConfig'),
         ]);
     }
 

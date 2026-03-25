@@ -20,7 +20,7 @@ class ScheduleController extends Controller
     {
         $companyId = $request->user()->company->id;
         
-        $scheduleBuses = ScheduleBus::with(['schedule.route', 'bus'])
+        $scheduleBuses = ScheduleBus::with(['schedule.route', 'bus.seatConfig'])
             ->whereHas('bus', function ($q) use ($companyId) {
                 $q->where('company_id', $companyId);
             })
@@ -38,7 +38,7 @@ class ScheduleController extends Controller
         $validated = $request->validated();
         $companyId = $request->user()->company->id;
 
-        $bus = Bus::where('company_id', $companyId)->findOrFail($validated['bus_id']);
+        $bus = Bus::with('seatConfig')->where('company_id', $companyId)->findOrFail($validated['bus_id']);
 
         return DB::transaction(function () use ($validated, $bus) {
             $schedule = Schedule::firstOrCreate([

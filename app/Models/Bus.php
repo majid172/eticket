@@ -14,9 +14,18 @@ class Bus extends Model
         'bus_name',
         'bus_number',
         'bus_type',
-        'total_seats',
         'status',
     ];
+
+    protected $appends = ['total_seats'];
+
+    /**
+     * Get the total seats from the seat configuration.
+     */
+    public function getTotalSeatsAttribute()
+    {
+        return $this->seatConfig ? $this->seatConfig->capacity : 0;
+    }
 
 
     public function company()

@@ -8,9 +8,9 @@ class Seat extends Model
 {
     protected $fillable = [
         'bus_id',
-        'seat_number',
-        'status',
+        'capacity',
         'seat_type',
+        'status',
     ];
 
     public function bus()

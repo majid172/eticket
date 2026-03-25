@@ -15,7 +15,7 @@ class BusController extends Controller
     {
         // Eager load the 'company' and 'schedules.route' relationships
         // so we can display route info and schedule details for the bus.
-        $buses = Bus::with(['company', 'schedules.route'])->latest()->get();
+        $buses = Bus::with(['company', 'schedules.route', 'seatConfig'])->latest()->get();
 
         return response()->json($buses);
     }
