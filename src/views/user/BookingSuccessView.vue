@@ -10,13 +10,21 @@ const bookingStore = useBookingStore()
 const downloading = ref(false)
 
 onMounted(() => {
-  if (!bookingStore.selectedSeats.length) {
-    // router.push('/') // Redirect if no booking
+  // PERSISTence Restoration: Restore from localStorage if store is empty (e.g., after refresh)
+  if (!bookingStore.bookingId) {
+    const savedId = localStorage.getItem('last_booking_id');
+    const savedPnr = localStorage.getItem('last_pnr');
+    if (savedId) {
+        bookingStore.bookingId = savedId;
+        bookingStore.pnr = savedPnr;
+    }
   }
 })
 
 const goHome = () => {
     bookingStore.clearBookingDetails()
+    localStorage.removeItem('last_booking_id');
+    localStorage.removeItem('last_pnr');
     router.push('/')
 }
 
@@ -25,7 +33,6 @@ const printTicket = () => {
 }
 
 const downloadPdf = async () => {
-    console.log('Download initiated for bookingId:', bookingStore.bookingId);
     if (!bookingStore.bookingId) {
         alert('Missing booking ID. Please try again.');
         return;
@@ -37,7 +44,6 @@ const downloadPdf = async () => {
             responseType: 'blob'
         });
         
-        console.log('PDF response received:', response.status);
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
@@ -47,7 +53,6 @@ const downloadPdf = async () => {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
     } catch (err) {
-        console.error('Failed to download PDF:', err);
         const errorMsg = err.response?.data?.message || err.message;
         alert('Failed to download PDF: ' + errorMsg);
     } finally {
@@ -68,138 +73,132 @@ const qrValue = computed(() => {
 </script>
 
 <template>
-  <div class="booking-success-view bg-[#f8fafc] flex flex-col items-center py-12 px-6 font-sans print:bg-white print:p-0">
+  <div class="booking-success-view bg-[#f1f5f9] min-h-screen flex flex-col items-center py-10 px-4 font-sans print:bg-white print:py-0 print:px-0 print:min-h-0">
     
-    <!-- Sophisticated Success Header -->
-    <div class="text-center mb-6 print:hidden animate-fade-in">
-        <div class="w-12 h-12 bg-emerald-50 rounded-full mx-auto flex items-center justify-center mb-3 border border-emerald-100 shadow-sm">
-            <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+    <!-- This header will be hidden on PRINT -->
+    <div class="text-center mb-8 print:hidden animate-fade-in">
+        <div class="w-14 h-14 bg-indigo-600 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-lg">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
         </div>
-        <h2 class="text-xl font-bold text-slate-800 tracking-tight">Booking Confirmed</h2>
-        <p class="text-[11px] text-slate-500 font-medium">Your e-ticket has been generated successfully.</p>
+        <h2 class="text-2xl font-black text-slate-900 tracking-tight">Booking Finalized</h2>
+        <p class="text-[12px] text-slate-500 font-bold uppercase tracking-widest mt-1">Ready for download</p>
     </div>
 
-    <!-- Compact Premium Ticket -->
-    <div class="ticket-card bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden max-w-2xl w-full border border-slate-100 print:shadow-none print:border-slate-200">
-        
-        <!-- Ticket Header (Compact) -->
-        <div class="bg-slate-900 px-6 py-2 flex justify-between items-end text-white relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
-            <div class="relative z-10">
-                <h1 class="text-[10px] font-bold tracking-[0.2em] uppercase text-indigo-400 mb-1">Boarding Pass</h1>
-                <p class="text-lg font-black tracking-tight leading-none uppercase">e-Ticket</p>
-            </div>
-            <div class="text-right relative z-10">
-                <p class="text-[9px] uppercase tracking-widest text-slate-400 mb-0.5">PNR Reference</p>
-                <p class="text-xl font-mono font-black text-indigo-400 leading-none">{{ bookingStore.pnr || '---' }}</p>
-            </div>
-        </div>
-
-        <!-- Ticket Body (Condensed) -->
-        <div class="p-3 grid grid-cols-1 md:grid-cols-4 gap-6">
+    <!-- The Ticket Section - ONLY this remains on PRINT -->
+    <div class="ticket-container max-w-2xl w-full">
+        <div class="ticket-card bg-white rounded-2xl shadow-[0_15px_50px_-12px_rgba(0,0,0,0.1)] overflow-hidden border border-slate-100 print:shadow-none print:border-2 print:border-black print:rounded-none">
             
-            <!-- Left Info Section -->
-            <div class="md:col-span-3 space-y-5">
-                <!-- Journey Route (Compact style) -->
-                <div class="flex items-center justify-between pb-4 border-b border-slate-50">
-                    <div class="flex-1">
-                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Departure</p>
-                        <p class="text-sm font-black text-slate-800 tracking-tight">{{ bookingStore.routeInfo ? bookingStore.routeInfo.split(' - ')[0] : 'Origin' }}</p>
+            <!-- Ticket Header -->
+            <div class="bg-slate-900 px-6 py-3 flex justify-between items-end text-white relative overflow-hidden print:bg-black print:border-b print:border-black">
+                <div class="relative z-10">
+                    <h1 class="text-[10px] font-bold tracking-[0.2em] uppercase text-indigo-400 mb-0.5 print:text-white">Boarding Pass</h1>
+                    <p class="text-xl font-black tracking-tighter leading-none uppercase">e-Ticket</p>
+                </div>
+                <div class="text-right relative z-10">
+                    <p class="text-[9px] uppercase tracking-widest text-slate-400 mb-0.5 print:text-white">PNR Reference</p>
+                    <p class="text-2xl font-mono font-black text-white leading-none">{{ bookingStore.pnr || '---' }}</p>
+                </div>
+            </div>
+
+            <!-- Ticket Body -->
+            <div class="p-6 grid grid-cols-1 md:grid-cols-4 gap-6 print:p-8">
+                <!-- Left Details -->
+                <div class="md:col-span-3 space-y-6">
+                    <!-- Journey Route -->
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-100 print:border-black">
+                        <div class="flex-1">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 print:text-black">From (Origin)</p>
+                            <p class="text-base font-black text-slate-900 tracking-tight">{{ bookingStore.routeInfo ? bookingStore.routeInfo.split(' - ')[0] : 'Origin' }}</p>
+                        </div>
+                        <div class="flex-1 px-4 flex flex-col items-center">
+                             <div class="w-full h-[1px] bg-slate-200 relative top-2.5 print:bg-black"></div>
+                             <div class="w-6 h-6 bg-white rounded-full flex items-center justify-center z-10 border border-slate-100 print:border-black">
+                                 <svg class="w-4 h-4 text-indigo-500 print:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                             </div>
+                        </div>
+                        <div class="flex-1 text-right">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 print:text-black">To (Destination)</p>
+                            <p class="text-base font-black text-slate-900 tracking-tight">{{ bookingStore.routeInfo ? bookingStore.routeInfo.split(' - ').slice(-1)[0] : 'Destination' }}</p>
+                        </div>
                     </div>
-                    <div class="flex-1 px-4 flex flex-col items-center">
-                         <div class="w-full h-[1px] bg-slate-100 relative top-2"></div>
-                         <div class="w-5 h-5 bg-white rounded-full flex items-center justify-center z-10 border border-slate-100">
-                             <svg class="w-3 h-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+
+                    <!-- Details Grid -->
+                    <div class="grid grid-cols-2 gap-y-6 gap-x-12">
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 print:text-black">Journey Date</p>
+                            <p class="text-sm font-black text-slate-800">{{ bookingStore.journeyDate || '---' }}</p>
+                        </div>
+                        <div>
+                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 print:text-black">Departure Time</p>
+                            <p class="text-sm font-black text-slate-800">{{ bookingStore.busDetails?.departureTime || '---' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 print:text-black">Passenger Name</p>
+                            <p class="text-sm font-black text-slate-800 truncate uppercase">{{ bookingStore.passengerDetails?.name || 'GUEST' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 print:text-black">Bus Service</p>
+                            <p class="text-sm font-black text-slate-800 truncate uppercase">{{ bookingStore.busDetails?.operator || '---' }}</p>
+                        </div>
+                    </div>
+
+                     <!-- Footer Info -->
+                     <div class="pt-4 border-t border-slate-100 flex justify-between print:border-black">
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 print:text-black">Coach & Class</p>
+                            <p class="text-xs font-bold text-slate-600 uppercase">{{ bookingStore.busDetails?.isAc ? 'Premium AC' : 'Economy' }} Coach</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 print:text-black">Contact No.</p>
+                            <p class="text-xs font-bold text-slate-600">{{ bookingStore.passengerDetails?.phone || '---' }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QR & Seat Section -->
+                <div class="md:border-l border-slate-100 md:pl-6 flex flex-col justify-between items-center print:border-black print:border-l">
+                    <div class="text-center w-full">
+                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 print:text-black">Seat Numbers</p>
+                         <div class="flex flex-wrap justify-center gap-2">
+                             <span v-for="seat in bookingStore.selectedSeats" :key="seat.id" class="px-3 py-1 bg-slate-900 text-white font-black rounded text-[11px] min-w-[32px] print:bg-black">
+                                 {{ seat.name }}
+                             </span>
                          </div>
                     </div>
-                    <div class="flex-1 text-right">
-                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Arrival</p>
-                        <p class="text-sm font-black text-slate-800 tracking-tight">{{ bookingStore.routeInfo ? bookingStore.routeInfo.split(' - ').slice(-1)[0] : 'Destination' }}</p>
-                    </div>
-                </div>
-
-                <!-- 2x2 Grid for Specifics (Small text) -->
-                <div class="grid grid-cols-2 gap-y-4 gap-x-8">
-                    <div>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Journey Date</p>
-                        <p class="text-xs font-bold text-slate-700">{{ bookingStore.journeyDate || '---' }}</p>
-                    </div>
-                    <div>
-                         <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Departure Time</p>
-                        <p class="text-xs font-bold text-slate-700">{{ bookingStore.busDetails?.departureTime || '---' }}</p>
-                    </div>
-                    <div class="col-span-1">
-                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Passenger</p>
-                        <p class="text-xs font-bold text-slate-700 truncate capitalize">{{ bookingStore.passengerDetails?.name || 'Guest' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Bus Service</p>
-                        <p class="text-xs font-bold text-slate-700 truncate">{{ bookingStore.busDetails?.operator || '---' }}</p>
-                    </div>
-                </div>
-
-                 <!-- Footer Details Row -->
-                 <div class="pt-4 border-t border-slate-50 flex justify-between">
-                    <div>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Coach Info</p>
-                        <p class="text-xs font-medium text-slate-600">{{ bookingStore.busDetails?.isAc ? 'Premium AC' : 'Economy' }} Coach</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Contact</p>
-                        <p class="text-xs font-medium text-slate-600">{{ bookingStore.passengerDetails?.phone || '---' }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Visual Section (Seat & QR) -->
-            <div class="md:border-l border-slate-50 md:pl-6 flex flex-col justify-between">
-                <div>
-                     <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2">Selected Seats</p>
-                     <div class="flex flex-wrap gap-1.5">
-                         <span v-for="seat in bookingStore.selectedSeats" :key="seat.id" class="px-2 py-0.5 bg-slate-50 text-slate-700 font-bold rounded border border-slate-100 text-[11px] min-w-[32px] text-center">
-                             {{ seat.name }}
-                         </span>
+                    
+                     <div class="mt-8 bg-slate-50 w-full p-3 rounded-xl border border-slate-100 print:bg-white print:border-black print:rounded-none">
+                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 text-center print:text-black">Total Fare Rate</p>
+                         <p class="text-xl font-black text-slate-900 text-center leading-none">৳{{ bookingStore.totalPrice }}</p>
                      </div>
-                </div>
-                
-                 <div class="mt-6 bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/50">
-                     <p class="text-[9px] font-bold text-indigo-400 uppercase tracking-widest mb-1 text-center">Total Fare</p>
-                     <p class="text-lg font-black text-indigo-600 text-center leading-none">৳{{ bookingStore.totalPrice }}</p>
-                 </div>
 
-                <div class="mt-6 flex justify-center">
-                    <div class="bg-white p-1.5 border border-slate-100 rounded-lg shadow-sm">
-                        <qrcode-vue :value="qrValue" :size="70" level="H" />
+                    <div class="mt-8 bg-white p-1.5 border border-slate-100 rounded-lg print:border-black print:rounded-none">
+                        <qrcode-vue :value="qrValue" :size="65" level="H" />
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Footer / Security Note -->
-        <div class="bg-slate-50 px-6 py-1.5 flex justify-between items-center border-t border-slate-100">
-            <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Digital Boarding Validated</span>
-            <span class="text-[8px] font-medium text-slate-400 italic">Jatri E-Ticketing System &copy; 2026</span>
+            <!-- Validation Footer -->
+            <div class="bg-slate-50 px-6 py-2 flex justify-between items-center border-t border-slate-100 print:bg-white print:border-black">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest print:text-black">Digital Validation Active</span>
+                <span class="text-[9px] font-bold text-slate-400 italic print:text-black">Jatri E-Ticketing System &copy; 2026</span>
+            </div>
         </div>
     </div>
 
-    <!-- Action Buttons (Refined) -->
-    <div class="mt-4 flex flex-wrap justify-center gap-2 print:hidden animate-slide-up">
-        <button @click="downloadPdf" :disabled="downloading" class="group relative flex items-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50">
-            <svg v-if="!downloading" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-            <svg v-else class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-            </svg>
-            <span class="text-xs uppercase tracking-wide">{{ downloading ? 'Downloading...' : 'Download Ticket' }}</span>
+    <!-- Action Buttons (Hidden on Print) -->
+    <div class="mt-10 flex flex-wrap justify-center gap-4 print:hidden">
+        <button @click="downloadPdf" :disabled="downloading" class="flex items-center bg-indigo-600 hover:bg-slate-900 text-white font-bold py-3.5 px-10 rounded-full shadow-lg transition-all active:scale-95 disabled:opacity-50">
+            <svg v-if="!downloading" class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            <span class="text-xs uppercase tracking-widest">{{ downloading ? 'Saving...' : 'Download Softcopy' }}</span>
         </button>
 
-        <button @click="printTicket" class="flex items-center bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-6 rounded-xl shadow-md transition-all active:scale-95">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-            <span class="text-xs uppercase tracking-wide">Print Paper</span>
+        <button @click="printTicket" class="flex items-center bg-slate-900 hover:bg-black text-white font-bold py-3.5 px-10 rounded-full shadow-lg transition-all active:scale-95">
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+            <span class="text-xs uppercase tracking-widest">Print Receipt</span>
         </button>
 
-        <button @click="goHome" class="flex items-center bg-white hover:bg-slate-50 text-slate-600 font-bold py-2.5 px-6 rounded-xl shadow-sm border border-slate-200 transition-all active:scale-95">
-            <span class="text-xs uppercase tracking-wide">Back Home</span>
+        <button @click="goHome" class="flex items-center bg-white border border-slate-200 text-slate-600 font-bold py-3.5 px-10 rounded-full transition-all">
+            <span class="text-xs uppercase tracking-widest">Back Home</span>
         </button>
     </div>
 
@@ -207,68 +206,43 @@ const qrValue = computed(() => {
 </template>
 
 <style scoped>
-.animate-fade-in { animation: fadeIn 0.6s ease-out; }
-.animate-slide-up { animation: slideUp 0.8s ease-out; }
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
 @media print {
-    body {
-        background-color: white !important;
-        -webkit-print-color-adjust: economy !important;
-        print-color-adjust: economy !important;
-        color: black !important;
+    /* Only print the ticket container */
+    body * {
+        visibility: hidden;
     }
-
-    .booking-success-view {
-        padding: 0 !important;
-        margin: 0 !important;
-        background: white !important;
+    .ticket-container, .ticket-container * {
+        visibility: visible;
     }
-
-    .ticket-card {
-        border: 1px solid black !important;
-        box-shadow: none !important;
-        color: black !important;
+    .ticket-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
         max-width: none !important;
-        margin: 0 auto !important;
-        background: white !important;
-        page-break-inside: avoid !important;
+        margin: 0 !important;
     }
 
-    /* Force monochromatic elements */
-    .bg-slate-900, .bg-indigo-600, .bg-emerald-50, .bg-indigo-50\/50 {
-        background: white !important;
-        color: black !important;
-        border-bottom: 1px solid black !important;
+    /* Force high-contrast monochromatic styles */
+    .bg-slate-900 {
+        background-color: black !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
-
-    .text-indigo-400, .text-emerald-500, .text-indigo-600, .text-slate-400 {
-        color: black !important;
-    }
-
-    .border-slate-100, .border-indigo-100\/50, .border-slate-50 {
-        border-color: #ddd !important;
-    }
-
-    .ticket-card p, .ticket-card h1, .ticket-card span {
+    
+    .bg-indigo-600, .bg-slate-50, .bg-white {
+        background-color: white !important;
         color: black !important;
     }
 
-    /* Hide decorative elements */
-    .bg-indigo-500\/10, .blur-2xl {
-        display: none !important;
+    .border-slate-100, .border-b, .border-t, .border-l {
+        border-color: black !important;
     }
 
-    /* Ensure QR code is black and white */
+    .text-indigo-400, .text-slate-400, .text-indigo-500, .text-slate-600 {
+        color: black !important;
+    }
+
     canvas {
         filter: grayscale(100%) contrast(200%) !important;
     }
