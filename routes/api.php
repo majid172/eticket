@@ -54,6 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/bookings',               [\App\Http\Controllers\Api\V1\Passenger\BookingController::class, 'index']);
         Route::post('/bookings',              [\App\Http\Controllers\Api\V1\Passenger\BookingController::class, 'store']);
         Route::get('/bookings/{id}',          [\App\Http\Controllers\Api\V1\Passenger\BookingController::class, 'show']);
+        Route::get('/bookings/{id}/ticket',   [\App\Http\Controllers\Api\V1\Passenger\BookingController::class, 'downloadTicket']);
         Route::delete('/bookings/{id}',       [\App\Http\Controllers\Api\V1\Passenger\BookingController::class, 'destroy']);
     });
 

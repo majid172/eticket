@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use App\Http\Resources\BookingResource;
 use App\Http\Requests\StoreBookingRequest;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BookingController extends Controller
 {
@@ -89,7 +90,7 @@ class BookingController extends Controller
             ->where('user_id', $request->user()->id)
             ->findOrFail($id);
             
-        $bookedSeats = BookingSeat::with('seat')->where('booking_id', $booking->id)->get();
+        $bookedSeats = BookingSeat::where('booking_id', $booking->id)->get();
         
         return response()->json([
             'booking' => new BookingResource($booking),
@@ -115,5 +116,19 @@ class BookingController extends Controller
         });
 
         return response()->json(['message' => 'Booking cancelled successfully.']);
+    }
+
+    /**
+     * Download e-Ticket as PDF.
+     */
+    public function downloadTicket(Request $request, string $id)
+    {
+        $booking = Booking::with(['scheduleBus.schedule.route', 'scheduleBus.bus.company', 'user', 'bookingSeats'])
+            ->where('user_id', $request->user()->id)
+            ->findOrFail($id);
+            
+        $pdf = Pdf::loadView('pdf.ticket', compact('booking'));
+        
+        return $pdf->download("e-Ticket-{$booking->booking_reference}.pdf");
     }
 }
