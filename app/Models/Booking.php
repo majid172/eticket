@@ -25,4 +25,9 @@ class Booking extends Model
     {
         return $this->belongsTo(ScheduleBus::class);
     }
+
+    public function bookingSeats()
+    {
+        return $this->hasMany(BookingSeat::class);
+    }
 }

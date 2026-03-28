@@ -222,25 +222,157 @@
         </div>
         <div class="clear"></div>
     </div>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <table>
+                <tr>
+                    <td class="header-title">Jatri E-Ticketing Receipt</td>
+                    <td class="pnr-box">
+                        <div class="pnr-label">PNR REFERENCE</div>
+                        <div class="pnr-value">{{ $booking->booking_reference }}</div>
+                    </td>
+                </tr>
+            </table>
+        </div>
 
-    <div class="footer-note">
-        <strong>RECEIPT REMARKS</strong><br>
-        The carriage of certain hazardous materials like: aerosols, fireworks and flammable liquids aboard the bus is strictly prohibited. 
-        Jatri E-Ticketing System &copy; 2026. All rights reserved.
-    </div>
+        <!-- Sub-header disclaimer -->
+        <div class="sub-header">
+            AT CHECK-IN, PLEASE SHOW A PICTURE IDENTIFICATION AND THE DOCUMENT YOU GAVE FOR REFERENCE AT RESERVATION TIME.
+        </div>
 
-    <!-- QR Code Section for Digital Verification -->
-    <div style="margin-top: 20px; text-align: center;">
-        <div style="font-size: 8px; margin-bottom: 5px;">Scan for digital validation</div>
-        @if(class_exists('\SimpleSoftwareIO\QrCode\Facades\QrCode'))
-            <img src="data:image/png;base64,{{ base64_encode(\SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')->size(60)->generate($booking->booking_reference)) }}" alt="QR Code">
-        @else
-            <div style="border: 1px solid #ccc; padding: 10px; display: inline-block;">
-                <strong>{{ $booking->booking_reference }}</strong>
+        <div class="content">
+            <!-- Journey Table -->
+            <table class="journey-table">
+                <thead>
+                    <tr>
+                        <th width="25%">From</th>
+                        <th width="25%">To</th>
+                        <th width="20%">Coach/Bus</th>
+                        <th width="15%">Departure</th>
+                        <th width="15%">Arrival</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="value">{{ $booking->scheduleBus->route->start_point }}</div>
+                            <div class="label">Standard Point</div>
+                        </td>
+                        <td>
+                            <div class="value">{{ $booking->scheduleBus->route->end_point }}</div>
+                            <div class="label">Standard Point</div>
+                        </td>
+                        <td>
+                            <div class="value">{{ $booking->scheduleBus->bus->operator_name }}</div>
+                            <div class="label">Coach: {{ $booking->scheduleBus->id }}</div>
+                        </td>
+                        <td>
+                            <div class="value">{{ $booking->scheduleBus->departure_time }}</div>
+                            <div class="label">{{ $booking->journey_date }}</div>
+                        </td>
+                        <td>
+                            <div class="value">{{ $booking->scheduleBus->departure_time }}</div>
+                            <div class="label">{{ $booking->journey_date }}</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Secondary Details -->
+            <table class="details-grid">
+                <tr>
+                    <td>
+                        <div class="label">Class:</div>
+                        <div class="value">{{ $booking->scheduleBus->bus->is_ac ? 'Premium AC' : 'Economy' }}</div>
+                    </td>
+                    <td>
+                        <div class="label">Status:</div>
+                        <div class="value">CONFIRMED (OK)</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="label">Baggage:</div>
+                        <div class="value">20KG Standard</div>
+                    </td>
+                    <td>
+                        <div class="label">Seats:</div>
+                        <div class="value">
+                            @foreach($booking->bookingSeats as $seat)
+                                {{ $seat->seat_number }}{{ !$loop->last ? ',' : '' }}
+                            @endforeach
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Payment & Fare side by side -->
+            <table class="split-box">
+                <tr>
+                    <td>
+                        <div class="box">
+                            <div class="box-title">Payment Details</div>
+                            <div class="label">Passenger Name:</div>
+                            <div class="value" style="margin-bottom:5px">{{ $booking->passenger_name }}</div>
+                            <div class="label">Form of Payment:</div>
+                            <div class="value">CASH / ONLINE</div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="box" style="background-color: #fcfcfc">
+                            <div class="box-title">Fare Details</div>
+                            <div style="width: 100%">
+                                <div style="float: left" class="label">Base Fare:</div>
+                                <div style="float: right" class="value">BDT {{ number_format($booking->total_price, 2) }}</div>
+                                <div style="clear: both"></div>
+                            </div>
+                            <div style="width: 100%; margin-top: 3px">
+                                <div style="float: left" class="label">Service Fees:</div>
+                                <div style="float: right" class="value">BDT 0.00</div>
+                                <div style="clear: both"></div>
+                            </div>
+                            <div class="fare-total">
+                                <div style="float: left">TOTAL:</div>
+                                <div style="float: right">BDT {{ number_format($booking->total_price, 2) }}</div>
+                                <div style="clear: both"></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Remarks -->
+            <div style="margin-top: 20px">
+                <div class="label">Receipt Remarks</div>
+                <div style="font-size: 8px; color: #444">
+                    The carriage of certain hazardous materials like: aerosols, fireworks and flammable liquids aboard the bus is strictly prohibited. 
+                    Validated via Jatri Gateway.
+                </div>
             </div>
-        @endif
-    </div>
-</div>
 
+            <!-- QR Section -->
+            <div class="qr-section">
+                <div class="label" style="margin-bottom: 5px">Digital Validation</div>
+                @if(class_exists('\SimpleSoftwareIO\QrCode\Facades\QrCode'))
+                    <img src="data:image/png;base64,{{ base64_encode(\SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')->size(60)->generate($booking->booking_reference)) }}" alt="QR Code">
+                @else
+                    <div style="border: 1px solid #000; padding: 5px; display: inline-block; font-weight: bold">
+                        {{ $booking->booking_reference }}
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <table width="100%">
+                <tr>
+                    <td>VERIFIED E-TICKET &bull; VALID WITH ID CARD</td>
+                    <td style="text-align: right">SYSTEM GENERATED RECEIPT</td>
+                </tr>
+            </table>
+        </div>
+    </div>
 </body>
 </html>

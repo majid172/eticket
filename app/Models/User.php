@@ -53,6 +53,14 @@ class User extends Authenticatable
     // ─── Relationships ────────────────────────────────────────────────────────
 
     /**
+     * The profile for a passenger user.
+     */
+    public function passengerProfile()
+    {
+        return $this->hasOne(PassengerProfile::class);
+    }
+
+    /**
      * The company profile for an operator user.
      */
     public function company()

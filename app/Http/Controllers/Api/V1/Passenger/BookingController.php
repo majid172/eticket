@@ -21,7 +21,7 @@ class BookingController extends Controller
      */
     public function index(Request $request)
     {
-        $bookings = Booking::with(['scheduleBus.schedule.route', 'scheduleBus.bus.company', 'user'])
+        $bookings = Booking::with(['scheduleBus.schedule.route', 'scheduleBus.bus.company', 'user', 'bookingSeats'])
             ->where('user_id', $request->user()->id)
             ->latest()
             ->paginate(10);

@@ -24,6 +24,7 @@ class BookingResource extends JsonResource
             'payment_status' => $this->payment_status,
             'booked_at' => $this->booked_at,
             'created_at' => $this->created_at,
+            'seats' => $this->whenLoaded('bookingSeats'),
         ];
     }
 }

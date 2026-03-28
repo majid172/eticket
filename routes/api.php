@@ -49,7 +49,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Passengers can ONLY manage their own bookings.
     // They have NO access to operator or admin routes.
     Route::middleware('role:user')->prefix('passenger')->group(function () {
-
+        // Profile & Settings
+        Route::get('/profile',              [\App\Http\Controllers\Api\V1\Passenger\ProfileController::class, 'show']);
+        Route::put('/profile',              [\App\Http\Controllers\Api\V1\Passenger\ProfileController::class, 'update']);
+        
         // Booking management (own bookings only)
         Route::get('/bookings',               [\App\Http\Controllers\Api\V1\Passenger\BookingController::class, 'index']);
         Route::post('/bookings',              [\App\Http\Controllers\Api\V1\Passenger\BookingController::class, 'store']);
