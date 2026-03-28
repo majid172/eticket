@@ -8,6 +8,8 @@ export const useBookingStore = defineStore('booking', () => {
   const routeInfo = ref(null)
   const passengerDetails = ref(null)
   const pnr = ref(null)
+  const bookingId = ref(null)
+  const scheduleBusId = ref(null)
 
   const totalPrice = computed(() => {
     if (!busDetails.value || !selectedSeats.value.length) return 0
@@ -46,6 +48,8 @@ export const useBookingStore = defineStore('booking', () => {
     passengerDetails,
     pnr,
     totalPrice,
+    bookingId,
+    scheduleBusId,
     setBookingDetails,
     confirmBooking,
     clearBookingDetails

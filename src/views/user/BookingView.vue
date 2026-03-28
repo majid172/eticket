@@ -39,18 +39,21 @@ const confirmBooking = async () => {
       seat_ids: bookingStore.selectedSeats.map(s => s.id)
     };
 
-    const { data } = await api.post('/passenger/bookings', payload);
-    
-    // Set the returned PNR (or generate if backend doesn't, but backend uses $booking->pnr maybe?
-    // Assume backend returns booking object inside 'booking' key
-    const currentTicket = data.booking || {};
+    const response = await api.post('/passenger/bookings', payload);
+    const currentTicket = response.data.data || {};
     
     // Save passenger details to store
-    // Also attach the confirmed PNR from backend
-    bookingStore.confirmBooking(passenger.value);
+    bookingStore.passengerDetails = passenger.value;
+    if(currentTicket.id) {
+      bookingStore.bookingId = currentTicket.id;
+    }
     if(currentTicket.booking_reference) {
       bookingStore.pnr = currentTicket.booking_reference;
     }
+    
+    // PERSISTence: Save key details to localStorage so page refresh doesn't break success page
+    localStorage.setItem('last_booking_id', bookingStore.bookingId);
+    localStorage.setItem('last_pnr', bookingStore.pnr);
     
     router.push('/booking/success')
   } catch (err) {
