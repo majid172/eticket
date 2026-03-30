@@ -91,7 +91,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Booking management (view passengers on their buses)
         Route::get('/bookings',               [\App\Http\Controllers\Api\V1\Operator\BookingController::class, 'index']);
+        Route::get('/bookings/{id}',          [\App\Http\Controllers\Api\V1\Operator\BookingController::class, 'show']);
         Route::put('/bookings/{id}/status',   [\App\Http\Controllers\Api\V1\Operator\BookingController::class, 'updateStatus']);
+        Route::delete('/bookings/{id}',       [\App\Http\Controllers\Api\V1\Operator\BookingController::class, 'destroy']);
     });
 
     // ─── Admin Routes ─────────────────────────────────────────────────────────

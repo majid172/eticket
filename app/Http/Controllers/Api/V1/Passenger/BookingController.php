@@ -112,7 +112,12 @@ class BookingController extends Controller
         DB::transaction(function () use ($booking) {
             $booking->update(['booking_status' => 'cancelled']);
             
+            $bookedSeatsCount = BookingSeat::where('booking_id', $booking->id)
+                ->where('status', '!=', 'cancelled')
+                ->count();
+                
             BookingSeat::where('booking_id', $booking->id)->update(['status' => 'cancelled']);
+            $booking->scheduleBus->increment('available_seats', $bookedSeatsCount);
         });
 
         return response()->json(['message' => 'Booking cancelled successfully.']);
