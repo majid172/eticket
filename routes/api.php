@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\Passenger\ScheduleController;
 
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Admin\BusController as AdminBusController;
+use App\Http\Controllers\Api\V1\Admin\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -99,6 +100,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // ─── Admin Routes ─────────────────────────────────────────────────────────
     // Full platform control. Only admin role can access.
     Route::middleware('role:admin')->prefix('admin')->group(function () {
+        // Dashboard stats
+        Route::get('/dashboard',             [DashboardController::class, 'index']);
+
         // User management
         Route::get('/users',             [UserController::class, 'index']);
         Route::get('/users/{id}',        [UserController::class, 'show']);
