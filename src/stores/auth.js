@@ -56,8 +56,6 @@ export const useAuthStore = defineStore('auth', () => {
    * Login with email and password.
    */
   async function login(payload) {
-    console.log(payload);
-
     loading.value = true
     errors.value = {}
     try {
@@ -94,18 +92,25 @@ export const useAuthStore = defineStore('auth', () => {
       await api.post('/auth/logout')
     } finally {
       clearSession()
-      router.push('/login')
+      router.push({ name: 'login' })
     }
   }
 
+  /**
+   * Redirect the user to their role-specific panel after login/register.
+   * Honors ?redirect= query param so users land back where they intended.
+   */
   function redirectByRole(role) {
+    // Consume the ?redirect= param set by the auth guard when bouncing to /login
+    const redirectPath = router.currentRoute.value.query?.redirect
+
     if (role === 'admin') {
-      router.push('/admin/dashboard')
+      router.push(redirectPath || { name: 'admin-dashboard' })
     } else if (role === 'operator') {
-      router.push('/operator/dashboard')
+      router.push(redirectPath || { name: 'operator-dashboard' })
     } else {
-      // passenger / user
-      router.push('/')
+      // passenger / user — send to intended page or home
+      router.push(redirectPath || { name: 'home' })
     }
   }
 
@@ -116,5 +121,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated, isAdmin, isOperator, isPassenger,
     // actions
     register, login, logout, fetchUser,
+    // helpers (exported so components/OAuth callbacks can use them)
+    setSession, clearSession, redirectByRole,
   }
 })

@@ -4,21 +4,23 @@ import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useBookingStore } from '@/stores/booking'
 import { useSearchStore } from '@/stores/user/search'
+import { useAuthStore } from '@/stores/auth'
 import api from '@/services/api'
 
 const route = useRoute()
 const router = useRouter()
 const bookingStore = useBookingStore()
 const searchStore = useSearchStore()
+const authStore = useAuthStore()
 
-const { 
-  searchParams, 
-  loadingTickets, 
-  tickets, 
-  expandedTicketId, 
-  selectedSeats, 
-  seatLayout, 
-  loadingLayout, 
+const {
+  searchParams,
+  loadingTickets,
+  tickets,
+  expandedTicketId,
+  selectedSeats,
+  seatLayout,
+  loadingLayout,
   totalPrice,
   seatType,
   availableOperators
@@ -48,13 +50,21 @@ onMounted(() => {
 })
 
 const proceedToBooking = (ticket) => {
+    // ── Improvement 2: Auth-aware CTA ────────────────────────────────────────
+    // If the user is not logged in, send them to /login with a redirect back
+    // to /booking so the intent is explicit rather than a silent guard redirect.
+    if (!authStore.isAuthenticated) {
+        router.push({ name: 'login', query: { redirect: '/booking' } })
+        return
+    }
+
     bookingStore.setBookingDetails(
         selectedSeats.value,
         ticket,
         tickets.value.find(t => t.id === expandedTicketId.value).departureDate,
         ticket.route
     )
-    bookingStore.scheduleBusId = ticket.id;
+    bookingStore.scheduleBusId = ticket.id
     router.push('/booking')
 }
 
@@ -453,9 +463,15 @@ const resetFilters = () => {
                                <button 
                                    @click="proceedToBooking(ticket)"
                                    :disabled="selectedSeats.length === 0"
-                                   class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                                   :class="[
+                                       'w-full font-bold py-3.5 rounded-xl shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2',
+                                       authStore.isAuthenticated
+                                           ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white hover:shadow-xl'
+                                           : 'bg-gray-900 hover:bg-indigo-700 text-white'
+                                   ]"
                                >
-                                   CONTINUE TO BOOKING
+                                   <svg v-if="!authStore.isAuthenticated" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                   {{ authStore.isAuthenticated ? 'CONTINUE TO BOOKING' : 'LOGIN TO BOOK' }}
                                </button>
                            </div>
                        </div>

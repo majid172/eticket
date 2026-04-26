@@ -60,6 +60,35 @@ export const useUserStore = defineStore("user", () => {
         }
     };
 
+    // ── Inline User Management (Diagram 4: User Management node) ──────────────
+
+    /** Toggle a user between active ↔ blocked without opening the edit page */
+    const toggleStatus = async (id) => {
+        const user = users.value.find(u => u.id === id);
+        if (!user) return;
+        const newStatus = user.status === 'active' ? 'blocked' : 'active';
+        try {
+            await api.put(`/admin/users/${id}`, { ...user, status: newStatus });
+            user.status = newStatus;  // optimistic update
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
+    };
+
+    /** Change a user's role (passenger → operator, etc.) inline */
+    const changeRole = async (id, newRole) => {
+        const user = users.value.find(u => u.id === id);
+        if (!user) return;
+        try {
+            await api.put(`/admin/users/${id}`, { ...user, role: newRole });
+            user.role = newRole;  // optimistic update
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
+    };
+
     return {
         users,
         user,
@@ -69,6 +98,8 @@ export const useUserStore = defineStore("user", () => {
         getUser,
         updateUser,
         deleteUser,
+        toggleStatus,
+        changeRole,
     };
 
 });

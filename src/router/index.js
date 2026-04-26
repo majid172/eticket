@@ -53,6 +53,7 @@ const router = createRouter({
         { path: 'bookings', name: 'admin-bookings', component: () => import('@/views/admin/BookingsView.vue') },
         { path: 'users', name: 'admin-users', component: () => import('@/views/admin/UsersView.vue') },
         { path: 'users/:id', name: 'admin-users-edit', component: () => import('@/views/admin/EditUserView.vue') },
+        { path: 'subscriptions', name: 'admin-subscriptions', component: () => import('@/views/admin/SubscriptionBillingView.vue') },
         { path: 'settings', name: 'admin-settings', component: () => import('@/views/admin/SettingsView.vue') },
       ],
     },
@@ -84,31 +85,64 @@ const router = createRouter({
 })
 
 // ─── Navigation Guards ────────────────────────────────────────────────────────
+//
+//  Diagram: Auth & role routing
+//
+//  User visits site
+//       │
+//  Auth guard (checks localStorage token)
+//       │
+//   ┌───┴────────────────────┐
+//  no token               has token
+//   │                        │
+//  Public pages         redirectByRole()
+//  Login/Register        ┌───┼────────┐
+//   │                  user  op    admin
+//  setSession()         │    │      │
+//  redirectByRole()    home  op   admin
+//
+//  401 from API → clear token → router.push('/login')  [handled in api.js]
+//
 router.beforeEach((to) => {
   const token = localStorage.getItem('auth_token')
-  const user = JSON.parse(localStorage.getItem('auth_user') || 'null')
-  const role = user?.role
+  const user  = JSON.parse(localStorage.getItem('auth_user') || 'null')
+  const role  = user?.role
 
-  // 1. Guest-only routes — redirect already-logged-in users to their dashboard
+  // ── Branch A: User already has a token ───────────────────────────────────
+
+  // A1. Guest-only pages (login / register) — send logged-in users to their panel
   if (to.meta.guestOnly && token) {
-    if (role === 'admin') return { name: 'admin-dashboard' }
+    if (role === 'admin')    return { name: 'admin-dashboard' }
     if (role === 'operator') return { name: 'operator-dashboard' }
     return { name: 'home' }
   }
 
-  // 2. Protected routes — redirect unauthenticated users to login
+  // A2. Root "/" — admins & operators should be in their own panel, not the passenger home
+  if (to.path === '/' && token) {
+    if (role === 'admin')    return { name: 'admin-dashboard' }
+    if (role === 'operator') return { name: 'operator-dashboard' }
+    // Passengers stay on home — fall through
+  }
+
+  // ── Branch B: User does NOT have a token ─────────────────────────────────
+
+  // B1. Protected routes — bounce to login and remember the intended destination
+  //     The ?redirect= param is consumed by redirectByRole() in the auth store
+  //     after a successful login so the user lands exactly where they wanted.
   if (to.meta.requiresAuth && !token) {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
 
-  // 3. Role-restricted routes — send each role to their own area
+  // ── Branch C: Role-restricted routes (token exists but wrong role) ────────
   if (to.meta.roles && token) {
     if (!to.meta.roles.includes(role)) {
-      if (role === 'admin') return { name: 'admin-dashboard' }
+      if (role === 'admin')    return { name: 'admin-dashboard' }
       if (role === 'operator') return { name: 'operator-dashboard' }
       return { name: 'home' }
     }
   }
+
+  // All other navigations are allowed to proceed
 })
 
 export default router
